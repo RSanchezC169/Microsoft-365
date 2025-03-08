@@ -24,7 +24,6 @@ _____ \         ~-+-~                   ___~=_______
 Script Version: 1
 OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
 PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
-Flipper Zero FirmWare mntm-001 https://momentum-fw.dev/update/
 Description of Script: 
 This script is to be used in tangent wtih my other scripts Create_Global_Admin.ps1 and Disable_All_Conditional_Access_Policies_and_OR_Disable_Security_Defaults.ps1. 
 First once you have access to the tenant via a global admin account use Create_Global_Admin.ps1 to create your own global admin account and then run Disable_All_Conditional_Access_Policies_and_OR_Disable_Security_Defaults.ps1 to disable all conditional access policies in the tenant or disable security defaults so you do not have to worry about 2fa. 
