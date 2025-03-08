@@ -30,6 +30,7 @@ This script is to be used in tangent wtih my other scripts Create_Global_Admin.p
 First once you have access to the tenant via a global admin account use Create_Global_Admin.ps1 to create your own global admin account and then run Disable_All_Conditional_Access_Policies_and_OR_Disable_Security_Defaults.ps1 to disable all conditional access policies in the tenant or disable security defaults so you do not have to worry about 2fa. 
 Once you have creaeted your own global admin account in the tenant and disabled conditional access policies and or security defaults use Disconnect-MgGraph to disconnect so you can then run this script as the new global admin account.
 After this has been done use this script to remove every admin from the tenant except for your new global admin account so that you are the only admin of the tenant.
+Then you can run my script List_All_Admins.ps1 to make sure you are the only admin in the tenant.
 NOTE:
 Make sure to replace -KeepAccountUPN "admin@yourdomain.com" with the new global admins smtp address.
 #>
