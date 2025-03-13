@@ -424,23 +424,30 @@ Function Get-Emails {
             $filterParts = @()
             if ($PSBoundParameters.ContainsKey('StartDate') -and $PSBoundParameters.ContainsKey('EndDate')) {
                 $filterParts += "receivedDateTime ge $($StartDate.ToString("yyyy-MM-ddTHH:mm:ssZ")) and receivedDateTime le $($EndDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))"
+	     Write-Log -Message "Filter was created receivedDateTime ge $($StartDate.ToString("yyyy-MM-ddTHH:mm:ssZ")) and receivedDateTime le $($EndDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))"
             } elseif ($PSBoundParameters.ContainsKey('StartDate')) {
                 $filterParts += "receivedDateTime ge $($StartDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))"
+	     Write-Log -Message "Filter was created receivedDateTime ge $($StartDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))"
             } elseif ($PSBoundParameters.ContainsKey('EndDate')) {
                 $filterParts += "receivedDateTime le $($EndDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))"
+	     Write-Log -Message "Filter was created receivedDateTime le $($EndDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))"
             }
 
             if ($PSBoundParameters.ContainsKey('SubjectLine')) {
                 $filterParts += "subject eq '$SubjectLine'"
+	     Write-Log -Message "Filter was created subject eq '$SubjectLine'"
             }
             if ($PSBoundParameters.ContainsKey('Sender')) {
                 $filterParts += "from/emailAddress/address eq '$Sender'"
+	     Write-Log -Message "Filter was created from/emailAddress/address eq '$Sender'"
             }
             if ($PSBoundParameters.ContainsKey('Receiver')) {
                 $filterParts += "toRecipients/any(t: t/emailAddress/address eq '$Receiver')"
+	     Write-Log -Message "Filter was created toRecipients/any(t: t/emailAddress/address eq '$Receiver')"
             }
             if ($PSBoundParameters.ContainsKey('Domain')) {
                 $filterParts += "from/emailAddress/address endswith '$Domain'"
+	     Write-Log -Message "Filter was created from/emailAddress/address endswith '$Domain'"
             }
 
             $filter = $filterParts -join " and "
@@ -883,10 +890,9 @@ Function Get-FilterCriteria {
 Function Show-Menu {
 #Clear-Host
 Clear-Host
-#[System.Console]::Clear()
+[System.Console]::Clear()
+
 # Menu Display Logic
-Clear-Host
-#[System.Console]::Clear()
 Write-Host "------------------------------------" -ForegroundColor Green
 Write-Host "    Welcome to the Email Exporter" -ForegroundColor Green
 Write-Host "------------------------------------" -ForegroundColor Green
@@ -898,7 +904,7 @@ $menu = @"
 5 => Export All Emails by Sender For One Users[Dump Format][under development]
 6 => Export All Emails by subject line for One User[Dump Format][under development]
 7 => Export All Emails by Recipient for One User[Dump Format][under development]
-7 => Export All Emails by Domain for One User[Dump Format][under development]
+7 => Export All Emails by from Domain for One User[Dump Format][under development]
 Q => Quit
 --------------------------------------------------------------------------------
 Select a task by number or Q to quit ::
@@ -1086,11 +1092,59 @@ Switch ($choice) {
 	     Show-Menu
             }
 "5" {
-                # Placeholder for Export All Emails by Sender or domain For One Users[under development]
+                # Placeholder for Export All Emails by Sender For One Users[Dump Format]
                 Clear-Host
-                Write-Host "Option 5: Export All Emails by Sender or domain For One Users[under development]" -ForegroundColor Cyan
-                Write-Host "This option is under development or requires additional logic." -ForegroundColor Yellow
-                Write-Log -Message "Option 5 : Export All Emails by Sender or domain For One Users[under development]"
+                Write-Host "Option 5: Export All Emails by Sender For One Users[Dump Format]" -ForegroundColor Cyan
+                Write-Log -Message "Option 5 : Export All Emails by Sender For One Users[Dump Format]"
+	    try {
+	        # Check Microsoft Graph SDK connection
+	        $graphContext = Get-MgContext -ErrorAction Stop
+	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	            try {
+	                # Retrieve the user mailbox
+	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
+	                $UserMailbox = (Get-FilterCriteria -User).User
+		     $Sender = (Get-FilterCriteria -Sender).Sender
+	                if ($UserMailbox -AND $Sender) {
+	                    # Create the main folder for email export
+	                    $FolderPath = Create-MainFolder -EmailAddress $UserMailbox
+	                    if ($FolderPath) {
+	                        Write-Host "Exporting emails for $UserMailbox..." -ForegroundColor Cyan
+	                        
+	                        # Initialize array to hold emails
+	                        $EmailsToExport = @()
+	                        
+	                        # Retrieve emails for the user
+	                        $EmailsToExport = Get-Emails -User $UserMailbox -Sender $Sender
+	                        if ($EmailsToExport) {
+	                            # Export emails to the specified folder
+	                            Export-Email -Emails $EmailsToExport -FolderPath $FolderPath -User $UserMailbox
+	                        } else {
+	                            Write-Warning "No emails found for $UserMailbox."
+	                            Write-Log -Message "No emails found for $UserMailbox"
+	                        }
+	                    } else {
+	                        Write-Warning "Failed to create folder for $UserMailbox."
+	                        Write-Log -Message "Failed to create folder for $UserMailbox"
+	                    }
+	
+	                    # Log export start
+	                    Write-Log -Message "Export started for user $UserMailbox"
+	                } else {
+	                    Write-Warning "Failed to retrieve user information."
+	                    Write-Log -Message "Failed to retrieve user information"
+	                }
+	            } catch {
+	                Write-Warning "Error while exporting emails for one user. Error: $($_.Exception.Message)"
+	                Write-Log -Message "Error exporting emails for one user: $($_.Exception.Message)"
+	            }
+	        } else {
+	            Write-Host "Microsoft Graph SDK is not connected. Please run option 1 to connect to Graph." -ForegroundColor Yellow
+	        }
+	    } catch {
+	        Write-Warning "Could not process Option 3. Error: $($_.Exception.Message)"
+	        Write-Log -Message "Error processing Option 3: $($_.Exception.Message)"
+	    }
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
