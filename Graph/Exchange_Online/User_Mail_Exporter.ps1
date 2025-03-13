@@ -141,7 +141,7 @@ Function Set-Environment {
         Clear-Host
 
         # Step 2: Maximize window
-        Write-Progress -Activity "Environment Setup" -Status "Maximizing console window..." -PercentComplete 90 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Environment Setup" -Status "Maximizing console window..." -PercentComplete 20 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         Add-Type -TypeDefinition @"
             using System;
             using System.Runtime.InteropServices;
@@ -156,16 +156,16 @@ Function Set-Environment {
         Write-Log -Message "Console window maximized"
 
         # Step 3: Set execution policy
-        Write-Progress -Activity "Environment Setup" -Status "Setting execution policy..." -PercentComplete 20 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Environment Setup" -Status "Setting execution policy..." -PercentComplete 30 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         Set-ExecutionPolicy -Scope "Process" -ExecutionPolicy "Unrestricted" -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         Write-Log -Message "Execution policy set to 'Unrestricted'"
 
         # Step 4: Load required modules
-        Write-Progress -Activity "Environment Setup" -Status "Loading PowerShellGet module..." -PercentComplete 30 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Environment Setup" -Status "Loading PowerShellGet module..." -PercentComplete 40 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         Load-Module -Module "PowerShellGet"
         Write-Log -Message "PowerShellGet module loaded successfully"
 
-        Write-Progress -Activity "Environment Setup" -Status "Loading Microsoft.Graph module..." -PercentComplete 40 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Environment Setup" -Status "Loading Microsoft.Graph module..." -PercentComplete 50 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         Load-Module -Module "Microsoft.Graph.Authentication", "Microsoft.Graph.Groups", "Microsoft.Graph.Users", "Microsoft.Graph.Mail"
         Write-Log -Message "Microsoft.Graph module loaded successfully"
 
