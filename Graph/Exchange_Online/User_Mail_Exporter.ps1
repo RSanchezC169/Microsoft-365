@@ -24,7 +24,13 @@ _____ \         ~-+-~                   ___~=_______
 Script Version: 1
 OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
 PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
-Description of Script: You can only do this with the authenticated account not for all users
+Description of Script: 
+NOTE: This script only works with the mailbox that was authenticated to during connect-MgGraph, 
+example if you connect with USER@DOMAIN.COM you can only export emails from their mailbox this does not connect to all mailboxes in the tenant.
+
+This PowerShell script is designed to automate email export operations by interacting with Microsoft Graph API. 
+It provides an interactive menu system to execute various tasks, including connecting to Microsoft Graph, retrieving emails with various filters, and exporting them to a structured file system. 
+It emphasizes logging, validation, and an enhanced user experience through a cleanly defined menu-driven interface.
 #>
 ##################################################################################################################################################################
 #==============================Beginning of script======================================================================================================================
@@ -446,7 +452,7 @@ Function Get-Emails {
 	     Write-Log -Message "Filter was created toRecipients/any(t: t/emailAddress/address eq '$Receiver')"
             }
             if ($PSBoundParameters.ContainsKey('Domain')) {
-                $filterParts += "from/emailAddress/address endswith '$Domain'"
+                $filterParts += "contains(from/emailAddress/address, '$Domain')"
 	     Write-Log -Message "Filter was created from/emailAddress/address endswith '$Domain'"
             }
 
@@ -455,7 +461,7 @@ Function Get-Emails {
             # Retrieve emails with the filter
             Write-Progress -Activity "Retrieving Emails" -Status "Fetching emails for user: $User..." -PercentComplete 60
             $AllEmails = if ($filter) {
-                Get-MgUserMessage -UserId $User -Filter $filter -All
+                Get-MgUserMessage -UserId $User -All -Filter $filter 
             } else {
                 Get-MgUserMessage -UserId $User -All
             }
@@ -904,8 +910,8 @@ $menu = @"
 4 => Export All Emails in Date Range for One User[Dump Format]
 5 => Export All Emails by Sender For One Users[Dump Format]
 6 => Export All Emails by subject line for One User[Dump Format]
-7 => Export All Emails by Recipient for One User[Dump Format][under development]
-8 => Export All Emails by from Domain for One User[Dump Format][under development]
+7 => Export All Emails by Recipient for One User[Dump Format]
+8 => Export All Emails by from Domain for One User[Dump Format]
 Q => Quit
 --------------------------------------------------------------------------------
 Select a task by number or Q to quit ::
@@ -915,6 +921,7 @@ Switch ($choice) {
             "1" {
                 # Connect to Microsoft Graph
                 Clear-Host
+	     [System.Console]::Clear()
                 Write-Host "Option 1: Connect to Microsoft Graph" -ForegroundColor Cyan
                Write-Log -Message "Processing Option 1: Connect to Microsoft Graph"
                 try {
@@ -944,6 +951,7 @@ Switch ($choice) {
 "2" {
                 # Disconnect from Microsoft Graph
                 Clear-Host
+	     [System.Console]::Clear()
                 Write-Host "Option 2: Disconnect from Microsoft Graph" -ForegroundColor Cyan
                 Write-Log -Message "Processing Option 2: Disconnect from Microsoft Graph"
                 try {
@@ -1095,6 +1103,7 @@ Switch ($choice) {
 "5" {
                 # Placeholder for Export All Emails by Sender For One Users[Dump Format]
                 Clear-Host
+	     [System.Console]::Clear()
                 Write-Host "Option 5: Export All Emails by Sender For One Users[Dump Format]" -ForegroundColor Cyan
                 Write-Log -Message "Option 5 : Export All Emails by Sender For One Users[Dump Format]"
 	    try {
@@ -1155,6 +1164,7 @@ Switch ($choice) {
 "6" {
                 # Placeholder for Export All Emails by subject line for One User[Dump Format]
                 Clear-Host
+	     [System.Console]::Clear()
                 Write-Host "Option 6: Export All Emails by subject line for One User[Dump Format]" -ForegroundColor Cyan
                 Write-Log -Message "Option 6 : Export All Emails by subject line for One User[Dump Format]"
 	    try {
@@ -1177,6 +1187,130 @@ Switch ($choice) {
 	                        
 	                        # Retrieve emails for the user
 	                        $EmailsToExport = Get-Emails -User $UserMailbox -SubjectLine $Subject
+	                        if ($EmailsToExport) {
+	                            # Export emails to the specified folder
+	                            Export-Email -Emails $EmailsToExport -FolderPath $FolderPath -User $UserMailbox
+	                        } else {
+	                            Write-Warning "No emails found for $UserMailbox."
+	                            Write-Log -Message "No emails found for $UserMailbox"
+	                        }
+	                    } else {
+	                        Write-Warning "Failed to create folder for $UserMailbox."
+	                        Write-Log -Message "Failed to create folder for $UserMailbox"
+	                    }
+	
+	                    # Log export start
+	                    Write-Log -Message "Export started for user $UserMailbox"
+	                } else {
+	                    Write-Warning "Failed to retrieve user information."
+	                    Write-Log -Message "Failed to retrieve user information"
+	                }
+	            } catch {
+	                Write-Warning "Error while exporting emails for one user. Error: $($_.Exception.Message)"
+	                Write-Log -Message "Error exporting emails for one user: $($_.Exception.Message)"
+	            }
+	        } else {
+	            Write-Host "Microsoft Graph SDK is not connected. Please run option 1 to connect to Graph." -ForegroundColor Yellow
+	        }
+	    } catch {
+	        Write-Warning "Could not process Option 3. Error: $($_.Exception.Message)"
+	        Write-Log -Message "Error processing Option 3: $($_.Exception.Message)"
+	    }
+	
+                Read-Host "Press [Enter] to reload the menu"
+                Start-Sleep -Seconds 1
+	     Clear-Host
+	    [System.Console]::Clear()
+	     Show-Menu
+            }
+"7" {
+                # Placeholder for Export All Emails by Recipient for One User[Dump Format]
+                Clear-Host
+	     [System.Console]::Clear()
+                Write-Host "Option 7: Export All Emails by Recipient for One User[Dump Format]" -ForegroundColor Cyan
+                Write-Log -Message "Option 7 : Export All Emails by Recipient for One User[Dump Format]"
+	    try {
+	        # Check Microsoft Graph SDK connection
+	        $graphContext = Get-MgContext -ErrorAction Stop
+	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	            try {
+	                # Retrieve the user mailbox
+	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
+	                $UserMailbox = (Get-FilterCriteria -User).User
+		     $Recipient = (Get-FilterCriteria -Receiver).Receiver
+	                if ($UserMailbox -AND $Recipient) {
+	                    # Create the main folder for email export
+	                    $FolderPath = Create-MainFolder -EmailAddress $UserMailbox
+	                    if ($FolderPath) {
+	                        Write-Host "Exporting emails for $UserMailbox..." -ForegroundColor Cyan
+	                        
+	                        # Initialize array to hold emails
+	                        $EmailsToExport = @()
+	                        
+	                        # Retrieve emails for the user
+	                        $EmailsToExport = Get-Emails -User $UserMailbox -Receiver $Recipient
+	                        if ($EmailsToExport) {
+	                            # Export emails to the specified folder
+	                            Export-Email -Emails $EmailsToExport -FolderPath $FolderPath -User $UserMailbox
+	                        } else {
+	                            Write-Warning "No emails found for $UserMailbox."
+	                            Write-Log -Message "No emails found for $UserMailbox"
+	                        }
+	                    } else {
+	                        Write-Warning "Failed to create folder for $UserMailbox."
+	                        Write-Log -Message "Failed to create folder for $UserMailbox"
+	                    }
+	
+	                    # Log export start
+	                    Write-Log -Message "Export started for user $UserMailbox"
+	                } else {
+	                    Write-Warning "Failed to retrieve user information."
+	                    Write-Log -Message "Failed to retrieve user information"
+	                }
+	            } catch {
+	                Write-Warning "Error while exporting emails for one user. Error: $($_.Exception.Message)"
+	                Write-Log -Message "Error exporting emails for one user: $($_.Exception.Message)"
+	            }
+	        } else {
+	            Write-Host "Microsoft Graph SDK is not connected. Please run option 1 to connect to Graph." -ForegroundColor Yellow
+	        }
+	    } catch {
+	        Write-Warning "Could not process Option 3. Error: $($_.Exception.Message)"
+	        Write-Log -Message "Error processing Option 3: $($_.Exception.Message)"
+	    }
+	
+                Read-Host "Press [Enter] to reload the menu"
+                Start-Sleep -Seconds 1
+	     Clear-Host
+	    [System.Console]::Clear()
+	     Show-Menu
+            }
+"8" {
+                # Placeholder for Export All Emails by from Domain for One User[Dump Format]
+                Clear-Host
+	     [System.Console]::Clear()
+                Write-Host "Option 8: Export All Emails by from Domain for One User[Dump Format]" -ForegroundColor Cyan
+                Write-Log -Message "Option 8: Export All Emails by from Domain for One User[Dump Format]"
+	    try {
+	        # Check Microsoft Graph SDK connection
+	        $graphContext = Get-MgContext -ErrorAction Stop
+	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	            try {
+	                # Retrieve the user mailbox
+	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
+	                $UserMailbox = (Get-FilterCriteria -User).User
+		     $Domain = (Get-FilterCriteria -Domain).Domain
+	                if ($UserMailbox -AND $Domain) {
+	                    # Create the main folder for email export
+	                    $FolderPath = Create-MainFolder -EmailAddress $UserMailbox
+	                    if ($FolderPath) {
+	                        Write-Host "Exporting emails for $UserMailbox..." -ForegroundColor Cyan
+	                        
+	                        # Initialize array to hold emails
+	                        $EmailsToExport = @()
+	                        
+	                        # Retrieve emails for the user
+	                        $EmailsToExport = Get-Emails -User $UserMailbox -Domain $Domain
 	                        if ($EmailsToExport) {
 	                            # Export emails to the specified folder
 	                            Export-Email -Emails $EmailsToExport -FolderPath $FolderPath -User $UserMailbox
