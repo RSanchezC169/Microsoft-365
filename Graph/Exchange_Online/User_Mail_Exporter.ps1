@@ -535,6 +535,9 @@ Function Export-Email {
     Write-Progress -Activity "Email Export" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue
     Write-Progress -Activity "Email Export" -Completed -ErrorAction SilentlyContinue
 
+    #Open Results
+    Start-Process explorer.exe $FolderPath
+
     # Clean up
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
@@ -891,7 +894,7 @@ $menu = @"
 1 => Connect to Microsoft Graph
 2 => Disconnect from Microsoft Graph
 3 => Export All Emails for One User [Dump Format]
-4 => Export All Emails in Date Range for One User[Dump Format][under development]
+4 => Export All Emails in Date Range for One User[Dump Format]
 5 => Export All Emails by Sender For One Users[Dump Format][under development]
 6 => Export All Emails by subject line for One User[Dump Format][under development]
 7 => Export All Emails by Recipient for One User[Dump Format][under development]
@@ -958,6 +961,7 @@ Switch ($choice) {
 "3" {
     # Export All Emails for One User
     Clear-Host
+     [System.Console]::Clear()
     Write-Host "Option 3: Export All Emails for One User [Dump Format]" -ForegroundColor Cyan
     Write-Log -Message "Processing Option 3: Export All Emails for One User [Dump Format]"
 
@@ -1015,19 +1019,70 @@ Switch ($choice) {
     # Wait and return to the menu
     Read-Host "Press [Enter] to reload the menu"
     Start-Sleep -Seconds 1
+    Clear-Host
     [System.Console]::Clear()
     Show-Menu
 }
 "4" {
                 # Placeholder for Export All Emails in Date Range for One User[under development]
                 Clear-Host
-                Write-Host "Option 4: Export All Emails in Date Range for One User[under development]" -ForegroundColor Cyan
-                Write-Host "This option is under development or requires additional logic." -ForegroundColor Yellow
-                Write-Log -Message "Option 4 : Export All Emails in Date Range for One User[under development]"
+	     [System.Console]::Clear()
+                Write-Host "Option 4: Export All Emails in Date Range for One User[Dump Format]" -ForegroundColor Cyan
+                Write-Log -Message "Option 4 : Export All Emails in Date Range for One User[Dump Format]"
+	    try {
+	        # Check Microsoft Graph SDK connection
+	        $graphContext = Get-MgContext -ErrorAction Stop
+	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	            try {
+	                # Retrieve the user mailbox
+	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
+	                $UserMailbox = (Get-FilterCriteria -User).User
+		     $DateRange = Get-FilterCriteria -StartDate -EndDate
+	                if ($UserMailbox -AND $DateRange) {
+	                    # Create the main folder for email export
+	                    $FolderPath = Create-MainFolder -EmailAddress $UserMailbox
+	                    if ($FolderPath) {
+	                        Write-Host "Exporting emails for $UserMailbox..." -ForegroundColor Cyan
+	                        
+	                        # Initialize array to hold emails
+	                        $EmailsToExport = @()
+	                        
+	                        # Retrieve emails for the user
+	                        $EmailsToExport = Get-Emails -User $UserMailbox -StartDate ($DateRange).StartDate.ToString("MM/dd/yyyy") -EndDate ($DateRange).EndDate.ToString("MM/dd/yyyy")
+	
+	                        if ($EmailsToExport) {
+	                            # Export emails to the specified folder
+	                            Export-Email -Emails $EmailsToExport -FolderPath $FolderPath -User $UserMailbox
+	                        } else {
+	                            Write-Warning "No emails found for $UserMailbox."
+	                            Write-Log -Message "No emails found for $UserMailbox"
+	                        }
+	                    } else {
+	                        Write-Warning "Failed to create folder for $UserMailbox."
+	                        Write-Log -Message "Failed to create folder for $UserMailbox"
+	                    }
+	
+	                    # Log export start
+	                    Write-Log -Message "Export started for user $UserMailbox"
+	                } else {
+	                    Write-Warning "Failed to retrieve user information."
+	                    Write-Log -Message "Failed to retrieve user information"
+	                }
+	            } catch {
+	                Write-Warning "Error while exporting emails for one user. Error: $($_.Exception.Message)"
+	                Write-Log -Message "Error exporting emails for one user: $($_.Exception.Message)"
+	            }
+	        } else {
+	            Write-Host "Microsoft Graph SDK is not connected. Please run option 1 to connect to Graph." -ForegroundColor Yellow
+	        }
+	    } catch {
+	        Write-Warning "Could not process Option 3. Error: $($_.Exception.Message)"
+	        Write-Log -Message "Error processing Option 3: $($_.Exception.Message)"
+	    }
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
-	    #[System.Console]::Clear()
+	     [System.Console]::Clear()
 	     Show-Menu
             }
 "5" {
@@ -1039,7 +1094,7 @@ Switch ($choice) {
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
-	    #[System.Console]::Clear()
+	    [System.Console]::Clear()
 	     Show-Menu
             }
 "6" {
@@ -1051,7 +1106,7 @@ Switch ($choice) {
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
-	    #[System.Console]::Clear()
+	    [System.Console]::Clear()
 	     Show-Menu
             }
 "Q" {
@@ -1059,7 +1114,7 @@ Switch ($choice) {
                 Write-Log -Message "User quit the menu"
                 sleep -Seconds 4
 	     Clear-Host
-	    #[System.Console]::Clear()
+	    [System.Console]::Clear()
                 ; BREAK
             }
 Default {
@@ -1068,7 +1123,7 @@ Default {
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
-	    #[System.Console]::Clear()
+	    [System.Console]::Clear()
 	    Show-Menu
             }
         }
@@ -1172,6 +1227,7 @@ Clear-Host
 [System.GC]::Collect()
 [System.GC]::WaitForPendingFinalizers()
 
+#At the end open the log file for review
 Notepad $Global:LogFile
 ##################################################################################################################################################################
 #==============================End of Main===========================================================================================================================
