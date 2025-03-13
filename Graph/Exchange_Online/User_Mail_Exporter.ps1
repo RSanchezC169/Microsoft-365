@@ -52,7 +52,7 @@ Function Write-Log {
     }
 
     # Append the message to the log file with a timestamp
-    $Timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+    $Timestamp = (Get-Date).ToString("yyyy-MM-dd hh:mm:ss tt")
     Add-Content -Path $LogFile -Value "$Timestamp : $Message"
 }
 ##################################################################################################################################################################
