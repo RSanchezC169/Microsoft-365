@@ -24,13 +24,13 @@ _____ \         ~-+-~                   ___~=_______
 Script Version: 1
 OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
 PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
-Description of Script: 
+Description of Script: You can only do this with the authenticated account not for all users
 #>
 ##################################################################################################################################################################
-#==============================Beginning of script================================================================================================================
+#==============================Beginning of script======================================================================================================================
 ##################################################################################################################################################################
 ##################################################################################################################################################################
-#==============================Functions==========================================================================================================================
+#==============================Functions==============================================================================================================================
 ##################################################################################################################################################################
 # Define the global log file path at the start of the script
 $Global:LogFile = "C:\Rsanchezc169ScriptLogs\Log_$(Get-Date -Format 'MM_dd_yyyy_hh_mm_tt').log"
@@ -689,15 +689,15 @@ Function Get-FilterCriteria {
         )
         try {
             if ($EmailAddress -match $EmailPattern) {
-                Write-Log -Message "Valid email address: $EmailAddress - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Valid email address: $EmailAddress"
                 return $true
             } else {
-                Write-Log -Message "Invalid email address: $EmailAddress - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Invalid email address: $EmailAddress"
                 Write-Warning "Invalid email format: $EmailAddress. Please enter a valid email address."
                 return $false
             }
         } catch {
-            Write-Log -Message "Error validating email address: $($_.Exception.Message) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+            Write-Log -Message "Error validating email address: $($_.Exception.Message)"
             Write-Warning "An error occurred while validating the email address. Please try again."
             return $false
         }
@@ -711,10 +711,10 @@ Function Get-FilterCriteria {
             [string]$Domain
         )
         if ($Domain -match $DomainPattern) {
-            Write-Log -Message "Valid domain: $Domain - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+            Write-Log -Message "Valid domain: $Domain"
             return $true
         } else {
-            Write-Log -Message "Invalid domain: $Domain - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+            Write-Log -Message "Invalid domain: $Domain"
             Write-Warning "Invalid domain format: $Domain. Please enter a valid domain (e.g., example.com)."
             return $false
         }
@@ -743,24 +743,24 @@ Function Get-FilterCriteria {
                 # Validate the date range
                 if ($StartDate -gt $EndDate) {
                     Write-Warning "Start date cannot be later than the End date. Please try again."
-                    Write-Log -Message "Error: Start date ($StartDate) is after End date ($EndDate) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Error: Start date ($StartDate) is after End date ($EndDate)"
                     continue
                 }
                 if ($EndDate -gt (Get-Date).AddDays(1)) {
                     Write-Warning "End date cannot be in the future. Please try again."
-                    Write-Log -Message "Error: End date ($EndDate) is in the future - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Error: End date ($EndDate) is in the future"
                     continue
                 }
 
                 # Validation successful
                 Write-Host "Date range is valid!" -ForegroundColor Green
-                Write-Log -Message "Success: Start date ($StartDate) and End date ($EndDate) are valid - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Success: Start date ($StartDate) and End date ($EndDate) are valid"
                 break
 
             } catch {
                 # Handle invalid date format
                 Write-Warning "Invalid date format. Please enter the date in MM/dd/yyyy format."
-                Write-Log -Message "Error parsing dates: $($_.Exception.Message) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Error parsing dates: $($_.Exception.Message)"
             }
         } while (-not ($StartDate -and $EndDate))  # Loop until valid
 
@@ -791,7 +791,7 @@ Function Get-FilterCriteria {
                 $InputSubject = Read-Host "Enter Subject Line"
                 if (-not [string]::IsNullOrWhiteSpace($InputSubject)) {
                     $Criteria["SubjectLine"] = $InputSubject
-                    Write-Log -Message "Subject Line: $InputSubject - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Subject Line: $InputSubject"
                     break
                 } else {
                     Write-Warning "Subject line cannot be empty. Please enter a valid subject line."
@@ -808,12 +808,12 @@ Function Get-FilterCriteria {
                         if ($UserExists) {
                             Write-Host "User exists: $InputUser" -ForegroundColor Green
                             $Criteria["User"] = $InputUser
-                            Write-Log -Message "User Email: $InputUser - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                            Write-Log -Message "User Email: $InputUser"
                             break
                         }
                     } catch {
                         Write-Warning "The entered user ($InputUser) does not exist in Microsoft Graph. Please try again."
-                        Write-Log -Message "Error: Invalid user ($InputUser) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                        Write-Log -Message "Error: Invalid user ($InputUser)"
                     }
                 }
             } while ($true)
@@ -825,7 +825,7 @@ Function Get-FilterCriteria {
                 $InputSender = Read-Host "Enter Sender Email (e.g., USER@DOMAIN.COM)"
                 if (Validate-Email -EmailAddress $InputSender) {
                     $Criteria["Sender"] = $InputSender
-                    Write-Log -Message "Sender Email: $InputSender - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Sender Email: $InputSender"
                     break
                 }
             } while ($true)
@@ -836,7 +836,7 @@ Function Get-FilterCriteria {
                 $InputReceiver = Read-Host "Enter Receiver Email (e.g., USER@DOMAIN.COM)"
                 if (Validate-Email -EmailAddress $InputReceiver) {
                     $Criteria["Receiver"] = $InputReceiver
-                    Write-Log -Message "Receiver Email: $InputReceiver - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Receiver Email: $InputReceiver"
                     break
                 }
             } while ($true)
@@ -848,7 +848,7 @@ Function Get-FilterCriteria {
                 $InputDomain = Read-Host "Enter Domain (e.g., example.com)"
                 if (Validate-Domain -Domain $InputDomain) {
                     $Criteria["Domain"] = $InputDomain
-                    Write-Log -Message "Domain: $InputDomain - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Domain: $InputDomain"
                     break
                 }
             } while ($true)
@@ -870,7 +870,7 @@ Function Get-FilterCriteria {
     } while ($true)
 
     # Log criteria
-    Write-Log -Message "Criteria: $($Criteria | Out-String) - $((Get-Date).ToString("yyyy-MM-dd hh:mm:ss"))"
+    Write-Log -Message "Criteria: $($Criteria | Out-String)"
 
     # Return criteria
     return $Criteria
@@ -906,12 +906,12 @@ Switch ($choice) {
                 # Connect to Microsoft Graph
                 Clear-Host
                 Write-Host "Option 1: Connect to Microsoft Graph" -ForegroundColor Cyan
-               Write-Log -Message "Processing Option 1: Connect to Microsoft Graph - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+               Write-Log -Message "Processing Option 1: Connect to Microsoft Graph"
                 try {
                     $graphContext = Get-MgContext  -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
                         Write-Host "User is already connected to Microsoft Graph." -ForegroundColor Green
-                        Write-Log -Message "Already connected to Microsoft Graph - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+                        Write-Log -Message "Already connected to Microsoft Graph"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     } elseif(!($graphContext -and $graphContext.Account -and $graphContext.TenantId)) {
 		$Scopes = @(
 		"User.ReadWrite.All", 
@@ -919,11 +919,11 @@ Switch ($choice) {
 		"Mail.ReadBasic"
 		)
 		Connect-MgGraph -Scope $Scopes  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-                       Write-Log -Message "Successfully connected to Microsoft Graph - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+                       Write-Log -Message "Successfully connected to Microsoft Graph"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     }
                 } catch {
                     Write-Warning "Could not connect to Microsoft Graph. Error: $($_.Exception.Message)"
-                    Write-Log -Message "Error connecting to Microsoft Graph: $($_.Exception.Message) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+                    Write-Log -Message "Error connecting to Microsoft Graph: $($_.Exception.Message)"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 }
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
@@ -935,19 +935,19 @@ Switch ($choice) {
                 # Disconnect from Microsoft Graph
                 Clear-Host
                 Write-Host "Option 2: Disconnect from Microsoft Graph" -ForegroundColor Cyan
-                Write-Log -Message "Processing Option 2: Disconnect from Microsoft Graph - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Processing Option 2: Disconnect from Microsoft Graph"
                 try {
                     $graphContext = Get-MgContext -ErrorAction Stop
                     if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
                         Disconnect-MgGraph
                         Write-Host "Disconnected from Microsoft Graph." -ForegroundColor Green
-                        Write-Log -Message "Disconnected from Microsoft Graph - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                        Write-Log -Message "Disconnected from Microsoft Graph"
                     } else {
                         Write-Host "Microsoft Graph SDK is not connected." -ForegroundColor Yellow
                     }
                 } catch {
                     Write-Warning "Could not disconnect from Microsoft Graph. Error: $($_.Exception.Message)"
-                    Write-Log -Message "Error disconnecting from Microsoft Graph: $($_.Exception.Message) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Error disconnecting from Microsoft Graph: $($_.Exception.Message)"
                 }
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
@@ -959,7 +959,7 @@ Switch ($choice) {
     # Export All Emails for One User
     Clear-Host
     Write-Host "Option 3: Export All Emails for One User [Dump Format]" -ForegroundColor Cyan
-    Write-Log -Message "Processing Option 3: Export All Emails for One User [Dump Format] - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+    Write-Log -Message "Processing Option 3: Export All Emails for One User [Dump Format]"
 
     try {
         # Check Microsoft Graph SDK connection
@@ -987,29 +987,29 @@ Switch ($choice) {
                             Export-Email -Emails $EmailsToExport -FolderPath $FolderPath -User $UserMailbox
                         } else {
                             Write-Warning "No emails found for $UserMailbox."
-                            Write-Log -Message "No emails found for $UserMailbox - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                            Write-Log -Message "No emails found for $UserMailbox"
                         }
                     } else {
                         Write-Warning "Failed to create folder for $UserMailbox."
-                        Write-Log -Message "Failed to create folder for $UserMailbox - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                        Write-Log -Message "Failed to create folder for $UserMailbox"
                     }
 
                     # Log export start
-                    Write-Log -Message "Export started for user $UserMailbox - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Export started for user $UserMailbox"
                 } else {
                     Write-Warning "Failed to retrieve user information."
-                    Write-Log -Message "Failed to retrieve user information - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                    Write-Log -Message "Failed to retrieve user information"
                 }
             } catch {
                 Write-Warning "Error while exporting emails for one user. Error: $($_.Exception.Message)"
-                Write-Log -Message "Error exporting emails for one user: $($_.Exception.Message) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Error exporting emails for one user: $($_.Exception.Message)"
             }
         } else {
             Write-Host "Microsoft Graph SDK is not connected. Please run option 1 to connect to Graph." -ForegroundColor Yellow
         }
     } catch {
         Write-Warning "Could not process Option 3. Error: $($_.Exception.Message)"
-        Write-Log -Message "Error processing Option 3: $($_.Exception.Message) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+        Write-Log -Message "Error processing Option 3: $($_.Exception.Message)"
     }
 
     # Wait and return to the menu
@@ -1023,7 +1023,7 @@ Switch ($choice) {
                 Clear-Host
                 Write-Host "Option 4: Export All Emails in Date Range for One User[under development]" -ForegroundColor Cyan
                 Write-Host "This option is under development or requires additional logic." -ForegroundColor Yellow
-                Write-Log -Message "Option 4 : Export All Emails in Date Range for One User[under development] - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Option 4 : Export All Emails in Date Range for One User[under development]"
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
@@ -1035,7 +1035,7 @@ Switch ($choice) {
                 Clear-Host
                 Write-Host "Option 5: Export All Emails by Sender or domain For One Users[under development]" -ForegroundColor Cyan
                 Write-Host "This option is under development or requires additional logic." -ForegroundColor Yellow
-                Write-Log -Message "Option 5 : Export All Emails by Sender or domain For One Users[under development] - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Option 5 : Export All Emails by Sender or domain For One Users[under development]"
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
@@ -1047,7 +1047,7 @@ Switch ($choice) {
                 Clear-Host
                 Write-Host "Option 6: Export All Emails by subject line for One User[under development]" -ForegroundColor Cyan
                 Write-Host "This option is under development or requires additional logic." -ForegroundColor Yellow
-                Write-Log -Message "Option 6 : Export All Emails by subject line for One User[under development] - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Option 6 : Export All Emails by subject line for One User[under development]"
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
@@ -1056,7 +1056,7 @@ Switch ($choice) {
             }
 "Q" {
                 Write-Host "Quitting..." -ForegroundColor Cyan
-                Write-Log -Message "User quit the menu - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "User quit the menu"
                 sleep -Seconds 4
 	     Clear-Host
 	    #[System.Console]::Clear()
@@ -1064,7 +1064,7 @@ Switch ($choice) {
             }
 Default {
                 Write-Warning "Invalid selection. Please try again."
-                Write-Log -Message "Invalid menu selection ($choice) - $((Get-Date).ToString("MM/dd/yyyy hh:mm:ss"))"
+                Write-Log -Message "Invalid menu selection ($choice)"
                 Read-Host "Press [Enter] to reload the menu"
                 Start-Sleep -Seconds 1
 	     Clear-Host
@@ -1080,11 +1080,11 @@ Default {
 
 }
 ##################################################################################################################################################################
-#=============================End of Functions====================================================================================================================
+#=============================End of Functions=========================================================================================================================
 ##################################################################################################################################################################
-#==============================Main===============================================================================================================================
+#==============================Main================================================================================================================================
 ##################################################################################################################################################################
-Write-Log -Message "Script Started - $((Get-Date).ToString('MM/dd/yyyy hh:mm:ss'))"
+Write-Log -Message "Script Started"
 
 # Initialize progress bar
 #Write-Progress -Activity "Script Initialization" -Status "Starting pre-checks..." -PercentComplete 0
@@ -1160,7 +1160,7 @@ if ([System.Environment]::OSVersion.Version.Major -ge 10) {
     Write-Log -Message "Error: Windows version is below 10"
 }
 
-Write-Log -Message "Script Ended - $((Get-Date).ToString('MM/dd/yyyy hh:mm:ss'))"
+Write-Log -Message "Script Ended"
 
 # Clear final progress
 #Write-Progress -Activity "Script Initialization" -Status "Initialization complete." -PercentComplete 100
@@ -1174,8 +1174,8 @@ Clear-Host
 
 Notepad $Global:LogFile
 ##################################################################################################################################################################
-#==============================End of Main========================================================================================================================
+#==============================End of Main===========================================================================================================================
 ##################################################################################################################################################################
 ##################################################################################################################################################################
-#==============================End of Script======================================================================================================================
+#==============================End of Script==========================================================================================================================
 ##################################################################################################################################################################
