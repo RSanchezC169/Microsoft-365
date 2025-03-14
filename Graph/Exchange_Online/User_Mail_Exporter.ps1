@@ -52,14 +52,14 @@ Function Write-Log {
     )
 
     # Ensure the log file exists
-    $LogDirectory = Split-Path -Path $LogFile
-    if (-not (Test-Path -Path $LogDirectory)) {
-        New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
+    $LogDirectory = Split-Path -Path $LogFile -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+    if (-not (Test-Path -Path $LogDirectory -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue)) {
+        New-Item -ItemType Directory -Path $LogDirectory -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue | Out-Null
     }
 
     # Append the message to the log file with a timestamp
-    $Timestamp = (Get-Date).ToString("yyyy-MM-dd hh:mm:ss tt")
-    Add-Content -Path $LogFile -Value "$Timestamp : $Message"
+    $Timestamp = (Get-Date -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue).ToString("yyyy-MM-dd hh:mm:ss tt")
+    Add-Content -Path $LogFile -Value "$Timestamp : $Message" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 }
 ##################################################################################################################################################################
 ##################################################################################################################################################################
@@ -70,6 +70,8 @@ Function Load-Module {
         [ValidateNotNullOrEmpty()]
         [string[]]$Modules  # Supports multiple modules
     )
+
+    Write-log -Message "Started Function Load-Module"
 
     Foreach ($Module in $Modules) {
         Write-Progress -Activity "Processing Module: $($Module)" -Status "Starting task..." -PercentComplete 0  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
@@ -134,10 +136,15 @@ Function Load-Module {
     # Clear the progress bar
     Write-Progress -Activity "Module Processing" -Status "Completed all tasks." -PercentComplete 100 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
     Write-Progress -Activity "Module Processing" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+
+    Write-log -Message "Ended Function Load-Module"
 }
 ##################################################################################################################################################################
 ##################################################################################################################################################################
 Function Set-Environment {
+
+    Write-log -Message "Started Function Set-Environment"
+
     # Initialize progress bar
     Write-Progress -Activity "Environment Setup" -Status "Starting setup..." -PercentComplete 0 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
@@ -157,7 +164,7 @@ Function Set-Environment {
                 public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
             }
 "@
-        $handle = (Get-Process -ID $PID).MainWindowHandle
+        $handle = (Get-Process -ID $PID -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue).MainWindowHandle
         [User32]::ShowWindow($handle, 3)  # Maximize window
         Write-Log -Message "Console window maximized"
 
@@ -168,7 +175,7 @@ Function Set-Environment {
 
         # Step 4: Load required modules
         Write-Progress -Activity "Environment Setup" -Status "Loading PowerShellGet module..." -PercentComplete 40 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-        Load-Module -Module "PowerShellGet"
+        Load-Module -Module "PowerShellGet" 
         Write-Log -Message "PowerShellGet module loaded successfully"
 
         Write-Progress -Activity "Environment Setup" -Status "Loading Microsoft.Graph module..." -PercentComplete 50 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
@@ -186,7 +193,9 @@ Function Set-Environment {
         Write-Progress -Activity "Environment Setup" -Status "Setting session preferences..." -PercentComplete 70 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         $Global:FormatEnumerationLimit = -1 
         $Global:ErrorActionPreference = "SilentlyContinue"
-        Write-Log -Message "Session preferences configured: FormatEnumerationLimit=-1, ErrorActionPreference=SilentlyContinue"
+        $Global:WarningActionPreference = "SilentlyContinue"
+        $Global:InformationActionPreference = "SilentlyContinue"
+        Write-Log -Message "Session preferences configured: FormatEnumerationLimit=-1, ErrorActionPreference=SilentlyContinue, WarningActionPreference = SilentlyContinue,InformationActionPreference = SilentlyContinue"
 
         # Clear final progress
         Write-Progress -Activity "Environment Setup" -Status "Setup complete." -PercentComplete 100 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
@@ -202,6 +211,8 @@ Function Set-Environment {
 
     Write-Progress -Activity "Environment Setup" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
+    Write-log -Message "Ended Function Set-Environment"
+
     # Clean up
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
@@ -215,6 +226,8 @@ Function Check-Email {
         [ValidateNotNullOrEmpty()]
         [string]$EmailAddress  # The email address to validate
     )
+
+    Write-log -Message "Started Function Check-Email"
 
     # Define the email validation regex pattern
     $pattern = '^(?:[a-z0-9!#$%&''*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&''*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\
@@ -251,6 +264,8 @@ Function Check-Email {
         throw
     }
 
+    Write-log -Message "Ended Function Check-Email"
+
     # Clean up
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
@@ -258,6 +273,9 @@ Function Check-Email {
 ##################################################################################################################################################################
 ##################################################################################################################################################################
 Function Get-DateRange {
+
+    Write-log -Message "Started Function Get-DateRange"
+
     # Initialize variables
     $StartDate = $null
     $EndDate = $null
@@ -271,19 +289,19 @@ Function Get-DateRange {
 
             # Prompt user for end date
             Write-Host "Please enter a valid End Date (e.g., MM/dd/yyyy):" -ForegroundColor Cyan
-            $EndDateInput = Read-Host "End Date"
+            $EndDateInput = Read-Host "End Date" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             $EndDate = [datetime]::Parse($EndDateInput)
 
             # Initialize progress
-            Write-Progress -Activity "Date Range Validation" -Status "Validating dates..." -PercentComplete 30 -ErrorAction SilentlyContinue
+            Write-Progress -Activity "Date Range Validation" -Status "Validating dates..." -PercentComplete 30 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
             # Validate the date range
             if ($StartDate -gt $EndDate) {
-                Write-Warning "Start date cannot be later than the End date. Please try again."
+                Write-Warning "Start date cannot be later than the End date. Please try again." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 Write-Log -Message "Error: Start date ($StartDate) is after End date ($EndDate)"
                 continue
             }
-            if ($EndDate -gt (Get-Date).AddDays(1)) {
+            if ($EndDate -gt (Get-Date -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue).AddDays(1)) {
                 Write-Warning "End date cannot be in the future. Please try again."
                 Write-Log -Message "Error: End date ($EndDate) is in the future"
                 continue
@@ -296,7 +314,7 @@ Function Get-DateRange {
 
         } catch {
             # Log any errors during parsing or validation
-            Write-Warning "Invalid date format. Please enter the date in MM/dd/yyyy format."
+            Write-Warning "Invalid date format. Please enter the date in MM/dd/yyyy format." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             Write-Log -Message "Error parsing dates: $($_.Exception.Message)"
         }
 
@@ -308,6 +326,8 @@ Function Get-DateRange {
         EndDate = $EndDate
     }
 
+    Write-log -Message "Ended Function Get-DateRange"
+
     # Clean up
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
@@ -315,6 +335,9 @@ Function Get-DateRange {
 ##################################################################################################################################################################
 ##################################################################################################################################################################
 FUNCTION Draw-Line {
+
+    Write-log -Message "Started Function Draw-Line"
+
     # Get the window width
     $LineWidth = ((get-host -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue).UI.RawUI.WindowSize.Width)
     
@@ -326,6 +349,8 @@ FUNCTION Draw-Line {
 
     # Return the line
     RETURN $Line
+
+    Write-log -Message "Ended Function Draw-Line"
 
     # Clean up
     [System.GC]::Collect()
@@ -341,12 +366,14 @@ Function Validate-Information {
         [string]$Information
     )
 
+    Write-log -Message "Started Function Validate-Information"
+
     # Initialize progress bar
     Write-Progress -Activity "Information Validation" -Status "Starting validation..." -PercentComplete 0   -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
     do {
         Write-Progress -Activity "Information Validation" -Status "Displaying input information..." -PercentComplete 20   -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-        Write-Host "The value you inputted is: $Information"
+        Write-Host "The value you inputted is: $Information" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
         # Ask user for validation
         $Validate = Read-Host -Prompt "The above information was inputted. Is this correct [Y/N]"   -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
@@ -368,7 +395,7 @@ Function Validate-Information {
 
                 # Ensure value is not empty
                 while ([string]::IsNullOrWhiteSpace($Information)) {
-                    Write-Warning "You did not put in a value. This cannot be empty."
+                    Write-Warning "You did not put in a value. This cannot be empty." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     $Information = Read-Host -Prompt "Enter new value ->"   -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 }
 
@@ -378,10 +405,12 @@ Function Validate-Information {
             Default {
                 # Log invalid validation input
                 Write-Log -Message "Invalid validation input: $Validate"
-                Write-Warning "Invalid input. Please validate with [Y/N]."
+                Write-Warning "Invalid input. Please validate with [Y/N]." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             }
         }
     } while ($Validate -ne "Y")
+
+    Write-log -Message "Ended Function Validate-Information"
 
     # Clean up
     [System.GC]::Collect()
@@ -415,13 +444,15 @@ Function Get-Emails {
         [string]$Domain        # Optional Domain
     )
 
+    Write-log -Message "Started Function Get-Emails"
+
     # Initialize progress bar
-    Write-Progress -Activity "Retrieving Emails" -Status "Initializing..." -PercentComplete 0
+    Write-Progress -Activity "Retrieving Emails" -Status "Initializing..." -PercentComplete 0 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
     try {
         # Check if any emails exist
-        Write-Progress -Activity "Retrieving Emails" -Status "Checking for emails for user: $User..." -PercentComplete 30
-        $FirstEmail = Get-MgUserMessage -UserId $User | Select-Object -First 1 
+        Write-Progress -Activity "Retrieving Emails" -Status "Checking for emails for user: $User..." -PercentComplete 30 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        $FirstEmail = Get-MgUserMessage -UserId $User -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue | Select-Object -First 1 
 
         if ($FirstEmail) {
             Write-Log -Message "Emails found for user: $User"
@@ -459,7 +490,7 @@ Function Get-Emails {
             $filter = $filterParts -join " and "
 
             # Retrieve emails with the filter
-            Write-Progress -Activity "Retrieving Emails" -Status "Fetching emails for user: $User..." -PercentComplete 60
+            Write-Progress -Activity "Retrieving Emails" -Status "Fetching emails for user: $User..." -PercentComplete 60 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             $AllEmails = if ($filter) {
                 Get-MgUserMessage -UserId $User -All -Filter $filter 
             } else {
@@ -469,20 +500,22 @@ Function Get-Emails {
             Write-Log -Message "Successfully retrieved emails for user: $User"
 
             # Return emails
-            Write-Progress -Activity "Retrieving Emails" -Status "Emails retrieved successfully." -PercentComplete 100 -Completed
+            Write-Progress -Activity "Retrieving Emails" -Status "Emails retrieved successfully." -PercentComplete 100 -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             return $AllEmails
         } else {
             Write-Log -Message "No emails found for user: $User"
-            Write-Warning "No emails found for user: $User"
+            Write-Warning "No emails found for user: $User" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             return $null
         }
     } catch {
         # Handle errors and log them
-        Write-Progress -Activity "Retrieving Emails" -Status "Failed to retrieve emails for user: $User." -PercentComplete 100 -Completed
+        Write-Progress -Activity "Retrieving Emails" -Status "Failed to retrieve emails for user: $User." -PercentComplete 100 -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         Write-Log -Message "Error retrieving emails for user: $User - $($_.Exception.Message)"
-        Write-Warning "Could not retrieve emails for user: $User. Error: $($_.Exception.Message)"
+        Write-Warning "Could not retrieve emails for user: $User. Error: $($_.Exception.Message)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         throw
     }
+
+    Write-log -Message "Ended Function Get-Emails"
 
     # Clean up
     [System.GC]::Collect()
@@ -504,8 +537,10 @@ Function Export-Email {
         [STRING]$User  # The email address of the user whose messages are being exported
     )
 
+    Write-log -Message "Started Function Export-Email"
+
     # Start progress
-    Write-Progress -Activity "Email Export" -Status "Initializing..." -PercentComplete 0 -ErrorAction SilentlyContinue
+    Write-Progress -Activity "Email Export" -Status "Initializing..." -PercentComplete 0 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
     # Process each email and export
     try {
@@ -514,7 +549,7 @@ Function Export-Email {
 
         foreach ($Message in $Emails) {
             $Counter++
-            Write-Progress -Activity "Email Export" -Status "Exporting email $Counter of $TotalEmails..." -PercentComplete (($Counter / $TotalEmails) * 100) -ErrorAction SilentlyContinue
+            Write-Progress -Activity "Email Export" -Status "Exporting email $Counter of $TotalEmails..." -PercentComplete (($Counter / $TotalEmails) * 100) -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
             # Generate a valid file name for the email
             try {
@@ -523,9 +558,9 @@ Function Export-Email {
                 $Index = 1
 
                 # Check if the file already exists and modify the name if necessary
-                while (Test-Path -Path $OutFile) {
+                while (Test-Path -Path $OutFile -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue) {
                     $IndexedFileName = ($Message.Subject + "_$Index.eml") -replace '[<>:"/\\|?*]', '_'
-                    $OutFile = Join-Path -Path $FolderPath -ChildPath $IndexedFileName
+                    $OutFile = Join-Path -Path $FolderPath -ChildPath $IndexedFileName -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     $Index++
                 }
 
@@ -538,23 +573,25 @@ Function Export-Email {
 	     #Write-Host "Exported email $($Message.Subject)"
             } catch {
                 Write-Log -Message "Error exporting email: $($_.Exception.Message)"
-                Write-Warning "Failed to export email: $($Message.Subject). Check logs for details."
+                Write-Warning "Failed to export email: $($Message.Subject). Check logs for details." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             }
         }
     } catch {
         Write-Log -Message "Error during email export process: $($_.Exception.Message)"
-        Write-Warning "An error occurred during the email export process. Check logs for details."
-        Write-Progress -Activity "Email Export" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue
-        Write-Progress -Activity "Email Export" -Completed -ErrorAction SilentlyContinue
+        Write-Warning "An error occurred during the email export process. Check logs for details." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Email Export" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Email Export" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         throw
     }
 
     # Finalize progress
-    Write-Progress -Activity "Email Export" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue
-    Write-Progress -Activity "Email Export" -Completed -ErrorAction SilentlyContinue
+    Write-Progress -Activity "Email Export" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+    Write-Progress -Activity "Email Export" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
     #Open Results
     Start-Process explorer.exe $FolderPath
+
+    Write-log -Message "Ended Function Export-Email"
 
     # Clean up
     [System.GC]::Collect()
@@ -570,59 +607,63 @@ Function Create-MainFolder {
         [string]$EmailAddress  # The email address to create a folder for
     )
 
+    Write-log -Message "Started Function Create-MainFolder"
+
     # Start progress
-    Write-Progress -Activity "Folder Creation" -Status "Initializing..." -PercentComplete 0 -ErrorAction SilentlyContinue
+    Write-Progress -Activity "Folder Creation" -Status "Initializing..." -PercentComplete 0 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
     # Extract folder name from the email address
     $FolderName = $null
     try {
-        Write-Progress -Activity "Folder Creation" -Status "Processing email address..." -PercentComplete 20 -ErrorAction SilentlyContinue
+        Write-Progress -Activity "Folder Creation" -Status "Processing email address..." -PercentComplete 20 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         $FolderName = ($EmailAddress -split "@")[0] + "_Emails"
     } catch {
         Write-Log -Message "Error extracting folder name from email address: $($_.Exception.Message)"
-        Write-Warning "Failed to extract folder name. Check logs for details."
-        Write-Progress -Activity "Folder Creation" -Completed -ErrorAction SilentlyContinue
+        Write-Warning "Failed to extract folder name. Check logs for details." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Folder Creation" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         throw
     }
 
     # Get the Downloads folder path
     $MainFolderPath = $null
     try {
-        Write-Progress -Activity "Folder Creation" -Status "Retrieving Downloads folder path..." -PercentComplete 40 -ErrorAction SilentlyContinue
+        Write-Progress -Activity "Folder Creation" -Status "Retrieving Downloads folder path..." -PercentComplete 40 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         $MainFolderPath = (New-Object -ComObject Shell.Application).Namespace('shell:Downloads').Self.Path
     } catch {
         Write-Log -Message "Error retrieving Downloads folder path: $($_.Exception.Message)"
-        Write-Warning "Could not retrieve the Downloads folder path. Check logs for details."
-        Write-Progress -Activity "Folder Creation" -Completed -ErrorAction SilentlyContinue
+        Write-Warning "Could not retrieve the Downloads folder path. Check logs for details." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Folder Creation" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         throw
     }
 
     # Check if the folder already exists or create it
     try {
-        Write-Progress -Activity "Folder Creation" -Status "Creating folder..." -PercentComplete 60 -ErrorAction SilentlyContinue
+        Write-Progress -Activity "Folder Creation" -Status "Creating folder..." -PercentComplete 60 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         $FullFolderPath = "$MainFolderPath\$FolderName"
 
-        if (Test-Path -Path $FullFolderPath) {
+        if (Test-Path -Path $FullFolderPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue) {
             Write-Log -Message "Folder already exists: $FullFolderPath"
-            Write-Warning "Folder already exists: $FullFolderPath"
+            Write-Warning "Folder already exists: $FullFolderPath" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         } else {
-            New-Item -ItemType Directory -Path $FullFolderPath -Force | Out-Null
+            New-Item -ItemType Directory -Path $FullFolderPath -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue | Out-Null
             Write-Log -Message "Folder created successfully: $FullFolderPath"
-            Write-Host "Folder created successfully: $FullFolderPath"
+            Write-Host "Folder created successfully: $FullFolderPath" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         }
     } catch {
         Write-Log -Message "Error creating folder: $($_.Exception.Message)"
-        Write-Warning "Failed to create folder. Check logs for details."
-        Write-Progress -Activity "Folder Creation" -Completed -ErrorAction SilentlyContinue
+        Write-Warning "Failed to create folder. Check logs for details." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Folder Creation" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         throw
     }
 
     # Finalize progress
-    Write-Progress -Activity "Folder Creation" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue
-    Write-Progress -Activity "Folder Creation" -Completed -ErrorAction SilentlyContinue
+    Write-Progress -Activity "Folder Creation" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+    Write-Progress -Activity "Folder Creation" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
     # Return the folder path
     return $FullFolderPath
+
+    Write-log -Message "Ended Function Create-MainFolder"
 
     # Clean up
     [System.GC]::Collect()
@@ -641,37 +682,41 @@ Function Create-SubFolder {
         [string]$SubFolderName  # The name of the sub-folder to create
     )
 
+    Write-log -Message "Started Function Create-SubFolder"
+
     # Start progress
-    Write-Progress -Activity "Sub-Folder Creation" -Status "Initializing..." -PercentComplete 0 -ErrorAction SilentlyContinue
+    Write-Progress -Activity "Sub-Folder Creation" -Status "Initializing..." -PercentComplete 0 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
     # Construct the sub-folder path
     $SubFolderPath = "$MainFolderPath\$SubFolderName"
 
     # Check if the sub-folder already exists or create it
     try {
-        Write-Progress -Activity "Sub-Folder Creation" -Status "Creating sub-folder..." -PercentComplete 60 -ErrorAction SilentlyContinue
+        Write-Progress -Activity "Sub-Folder Creation" -Status "Creating sub-folder..." -PercentComplete 60 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
-        if (Test-Path -Path $SubFolderPath) {
+        if (Test-Path -Path $SubFolderPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue) {
             Write-Log -Message "Sub-folder already exists: $SubFolderPath"
-            Write-Warning "Sub-folder already exists: $SubFolderPath"
+            Write-Warning "Sub-folder already exists: $SubFolderPath" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         } else {
-            New-Item -ItemType Directory -Path $SubFolderPath -Force | Out-Null
+            New-Item -ItemType Directory -Path $SubFolderPath -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue | Out-Null
             Write-Log -Message "Sub-folder created successfully: $SubFolderPath"
-            Write-Host "Sub-folder created successfully: $SubFolderPath"
+            Write-Host "Sub-folder created successfully: $SubFolderPath" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         }
     } catch {
         Write-Log -Message "Error creating sub-folder: $($_.Exception.Message)"
-        Write-Warning "Failed to create sub-folder. Check logs for details."
-        Write-Progress -Activity "Sub-Folder Creation" -Completed -ErrorAction SilentlyContinue
+        Write-Warning "Failed to create sub-folder. Check logs for details." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Sub-Folder Creation" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         throw
     }
 
     # Finalize progress
-    Write-Progress -Activity "Sub-Folder Creation" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue
-    Write-Progress -Activity "Sub-Folder Creation" -Completed -ErrorAction SilentlyContinue
+    Write-Progress -Activity "Sub-Folder Creation" -Status "Completed" -PercentComplete 100 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+    Write-Progress -Activity "Sub-Folder Creation" -Completed -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 
     # Return the sub-folder path
     return $SubFolderPath
+
+    Write-log -Message "Ended Function Create-SubFolder"
 
     # Clean up
     [System.GC]::Collect()
@@ -690,6 +735,8 @@ Function Get-FilterCriteria {
         [switch]$Receiver,    # If set, prompts for a receiver email
         [switch]$Domain      # If set, prompts for a domain
     )
+
+    Write-log -Message "Started Function Get-FilterCriteria"
 
     # Initialize variables for criteria
     $Criteria = @{}
@@ -714,12 +761,12 @@ Function Get-FilterCriteria {
                 return $true
             } else {
                 Write-Log -Message "Invalid email address: $EmailAddress"
-                Write-Warning "Invalid email format: $EmailAddress. Please enter a valid email address."
+                Write-Warning "Invalid email format: $EmailAddress. Please enter a valid email address." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 return $false
             }
         } catch {
             Write-Log -Message "Error validating email address: $($_.Exception.Message)"
-            Write-Warning "An error occurred while validating the email address. Please try again."
+            Write-Warning "An error occurred while validating the email address. Please try again." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             return $false
         }
     }
@@ -736,7 +783,7 @@ Function Get-FilterCriteria {
             return $true
         } else {
             Write-Log -Message "Invalid domain: $Domain"
-            Write-Warning "Invalid domain format: $Domain. Please enter a valid domain (e.g., example.com)."
+            Write-Warning "Invalid domain format: $Domain. Please enter a valid domain (e.g., example.com)." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             return $false
         }
     }
@@ -752,35 +799,35 @@ Function Get-FilterCriteria {
         do {
             try {
                 # Prompt user for start date
-                Write-Host "Please enter a valid Start Date (e.g., MM/dd/yyyy):" -ForegroundColor Cyan
+                Write-Host "Please enter a valid Start Date (e.g., MM/dd/yyyy):" -ForegroundColor Cyan -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 $StartDateInput = Read-Host "Start Date"
                 $StartDate = [datetime]::Parse($StartDateInput)
 
                 # Prompt user for end date
-                Write-Host "Please enter a valid End Date (e.g., MM/dd/yyyy):" -ForegroundColor Cyan
+                Write-Host "Please enter a valid End Date (e.g., MM/dd/yyyy):" -ForegroundColor Cyan -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 $EndDateInput = Read-Host "End Date"
                 $EndDate = [datetime]::Parse($EndDateInput)
 
                 # Validate the date range
                 if ($StartDate -gt $EndDate) {
-                    Write-Warning "Start date cannot be later than the End date. Please try again."
+                    Write-Warning "Start date cannot be later than the End date. Please try again." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     Write-Log -Message "Error: Start date ($StartDate) is after End date ($EndDate)"
                     continue
                 }
-                if ($EndDate -gt (Get-Date).AddDays(1)) {
-                    Write-Warning "End date cannot be in the future. Please try again."
+                if ($EndDate -gt (Get-Date -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue).AddDays(1)) {
+                    Write-Warning "End date cannot be in the future. Please try again." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     Write-Log -Message "Error: End date ($EndDate) is in the future"
                     continue
                 }
 
                 # Validation successful
-                Write-Host "Date range is valid!" -ForegroundColor Green
+                Write-Host "Date range is valid!" -ForegroundColor Green -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 Write-Log -Message "Success: Start date ($StartDate) and End date ($EndDate) are valid"
                 break
 
             } catch {
                 # Handle invalid date format
-                Write-Warning "Invalid date format. Please enter the date in MM/dd/yyyy format."
+                Write-Warning "Invalid date format. Please enter the date in MM/dd/yyyy format." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 Write-Log -Message "Error parsing dates: $($_.Exception.Message)"
             }
         } while (-not ($StartDate -and $EndDate))  # Loop until valid
@@ -795,7 +842,7 @@ Function Get-FilterCriteria {
     do {
         # Ensure both StartDate and EndDate are provided together
         if ($StartDate -xor $EndDate) {
-            Write-Warning "You must provide both -StartDate and -EndDate parameters together. The function will now exit."
+            Write-Warning "You must provide both -StartDate and -EndDate parameters together. The function will now exit." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             return
         }
 
@@ -815,25 +862,25 @@ Function Get-FilterCriteria {
                     Write-Log -Message "Subject Line: $InputSubject"
                     break
                 } else {
-                    Write-Warning "Subject line cannot be empty. Please enter a valid subject line."
+                    Write-Warning "Subject line cannot be empty. Please enter a valid subject line." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 }
             } while ($true)
         }
         # Validate User email and existence via Get-MgUser
         if ($User) {
             do {
-                $InputUser = Read-Host "Enter User Email (e.g., USER@DOMAIN.COM)"
+                $InputUser = Read-Host "Enter User Email (e.g., USER@DOMAIN.COM)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 if (Validate-Email -EmailAddress $InputUser) {
                     try {
-                        $UserExists = Get-MgUser -UserId $InputUser -ErrorAction Stop
+                        $UserExists = Get-MgUser -UserId $InputUser -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         if ($UserExists) {
-                            Write-Host "User exists: $InputUser" -ForegroundColor Green
+                            Write-Host "User exists: $InputUser" -ForegroundColor Green -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                             $Criteria["User"] = $InputUser
                             Write-Log -Message "User Email: $InputUser"
                             break
                         }
                     } catch {
-                        Write-Warning "The entered user ($InputUser) does not exist in Microsoft Graph. Please try again."
+                        Write-Warning "The entered user ($InputUser) does not exist in Microsoft Graph. Please try again." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         Write-Log -Message "Error: Invalid user ($InputUser)"
                     }
                 }
@@ -843,7 +890,7 @@ Function Get-FilterCriteria {
         # Validate Sender email
         if ($Sender) {
             do {
-                $InputSender = Read-Host "Enter Sender Email (e.g., USER@DOMAIN.COM)"
+                $InputSender = Read-Host "Enter Sender Email (e.g., USER@DOMAIN.COM)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 if (Validate-Email -EmailAddress $InputSender) {
                     $Criteria["Sender"] = $InputSender
                     Write-Log -Message "Sender Email: $InputSender"
@@ -854,7 +901,7 @@ Function Get-FilterCriteria {
         # Validate Receiver email
         if ($Receiver) {
             do {
-                $InputReceiver = Read-Host "Enter Receiver Email (e.g., USER@DOMAIN.COM)"
+                $InputReceiver = Read-Host "Enter Receiver Email (e.g., USER@DOMAIN.COM)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 if (Validate-Email -EmailAddress $InputReceiver) {
                     $Criteria["Receiver"] = $InputReceiver
                     Write-Log -Message "Receiver Email: $InputReceiver"
@@ -866,7 +913,7 @@ Function Get-FilterCriteria {
         # Validate Domain
         if ($Domain) {
             do {
-                $InputDomain = Read-Host "Enter Domain (e.g., example.com)"
+                $InputDomain = Read-Host "Enter Domain (e.g., example.com)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 if (Validate-Domain -Domain $InputDomain) {
                     $Criteria["Domain"] = $InputDomain
                     Write-Log -Message "Domain: $InputDomain"
@@ -875,16 +922,16 @@ Function Get-FilterCriteria {
             } while ($true)
         }
         # Display criteria
-        Write-Host "Filter Criteria:" -ForegroundColor Green
-        $Criteria.GetEnumerator() | ForEach-Object { Write-Host "$($_.Key): $($_.Value)" }
+        Write-Host "Filter Criteria:" -ForegroundColor Green -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        $Criteria.GetEnumerator() | ForEach-Object { Write-Host "$($_.Key): $($_.Value)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue}
 
         # Confirmation
-        $Confirm = Read-Host "Is the above information correct? (Y/N)"
+        $Confirm = Read-Host "Is the above information correct? (Y/N)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         if ($Confirm -eq "Y") {
-            Write-Host "You have confirmed the information as correct." -ForegroundColor Green
+            Write-Host "You have confirmed the information as correct." -ForegroundColor Green -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             break
         } else {
-            Write-Warning "Let's re-enter the information."
+            Write-Warning "Let's re-enter the information." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             $Criteria.Clear()
             continue
         }
@@ -895,10 +942,18 @@ Function Get-FilterCriteria {
 
     # Return criteria
     return $Criteria
+
+    Write-log -Message "Ended Function Get-FilterCriteria"
+
+    # Clean up
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+
 }
 ##################################################################################################################################################################
 ##################################################################################################################################################################
 Function Show-Menu {
+Write-log -Message "Started Function Show-Menu"
 #Clear-Host
 Clear-Host
 [System.Console]::Clear()
@@ -906,15 +961,19 @@ Clear-Host
 $graphContext = Get-MgContext  -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 IF ($graphContext -and $graphContext.Account -and $graphContext.TenantId){
 	Write-Host "Currently Connected to Microsoft Graph!"  -ForegroundColor Green
-	Write-Host `n
+	Write-Host "Connected as $($graphContext.Account), emails can be exported for this account!"
 }ELSEIF(!($graphContext -and $graphContext.Account -and $graphContext.TenantId)){
-	Write-Host "Not Connected to Microsoft Graph Currently"  -ForegroundColor Red
-	Write-Host `n
+	Write-Host "Not Connected to Microsoft Graph Currently run option 1"  -ForegroundColor Red
 }
 # Menu Display Logic
-Write-Host "------------------------------------" -ForegroundColor Green
-Write-Host "    Welcome to the Email Exporter" -ForegroundColor Green
-Write-Host "------------------------------------" -ForegroundColor Green
+Draw-Line
+Write-Host " __  __"  -ForeGroundColor Green                  
+Write-Host "|  \/  |"  -ForeGroundColor Green                  
+Write-Host "| \  / | ___ _ __  _   _ "  -ForeGroundColor Green 
+Write-Host "| |\/| |/ _ \ '_ \| | | |"  -ForeGroundColor Green 
+Write-Host "| |  | |  __/ | | | |_| |"  -ForeGroundColor Green 
+Write-Host "|_|  |_|\___|_| |_|\__,_|"  -ForeGroundColor Green
+Draw-Line
 $menu = @"
 1 => Connect to Microsoft Graph
 2 => Disconnect from Microsoft Graph
@@ -939,7 +998,7 @@ Switch ($choice) {
                 try {
                     $graphContext = Get-MgContext  -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
-                        Write-Host "User is already connected to Microsoft Graph." -ForegroundColor Green
+                        Write-Host "User is already connected to Microsoft Graph." -ForegroundColor Green -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         Write-Log -Message "Already connected to Microsoft Graph"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     } elseif(!($graphContext -and $graphContext.Account -and $graphContext.TenantId)) {
 		$Scopes = @(
@@ -954,7 +1013,7 @@ Switch ($choice) {
                     Write-Warning "Could not connect to Microsoft Graph. Error: $($_.Exception.Message)"
                     Write-Log -Message "Error connecting to Microsoft Graph: $($_.Exception.Message)"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 }
-                Read-Host "Press [Enter] to reload the menu"
+                Read-Host "Press [Enter] to reload the menu" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 Start-Sleep -Seconds 1
 	     Clear-Host
 	    #[System.Console]::Clear()
@@ -967,19 +1026,19 @@ Switch ($choice) {
                 Write-Host "Option 2: Disconnect from Microsoft Graph" -ForegroundColor Cyan
                 Write-Log -Message "Processing Option 2: Disconnect from Microsoft Graph"
                 try {
-                    $graphContext = Get-MgContext -ErrorAction Stop
+                    $graphContext = Get-MgContext -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
                         Disconnect-MgGraph
-                        Write-Host "Disconnected from Microsoft Graph." -ForegroundColor Green
+                        Write-Host "Disconnected from Microsoft Graph." -ForegroundColor Green -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         Write-Log -Message "Disconnected from Microsoft Graph"
                     } else {
-                        Write-Host "Microsoft Graph SDK is not connected." -ForegroundColor Yellow
+                        Write-Host "Microsoft Graph SDK is not connected." -ForegroundColor Yellow -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     }
                 } catch {
-                    Write-Warning "Could not disconnect from Microsoft Graph. Error: $($_.Exception.Message)"
+                    Write-Warning "Could not disconnect from Microsoft Graph. Error: $($_.Exception.Message)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     Write-Log -Message "Error disconnecting from Microsoft Graph: $($_.Exception.Message)"
                 }
-                Read-Host "Press [Enter] to reload the menu"
+                Read-Host "Press [Enter] to reload the menu" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 Start-Sleep -Seconds 1
 	     Clear-Host
 	    #[System.Console]::Clear()
@@ -994,18 +1053,18 @@ Switch ($choice) {
 
     try {
         # Check Microsoft Graph SDK connection
-        $graphContext = Get-MgContext -ErrorAction Stop
+        $graphContext = Get-MgContext -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
             try {
                 # Retrieve the user mailbox
-                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
+                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 $UserMailbox = (Get-FilterCriteria -User).User
 
                 if ($UserMailbox) {
                     # Create the main folder for email export
                     $FolderPath = Create-MainFolder -EmailAddress $UserMailbox
                     if ($FolderPath) {
-                        Write-Host "Exporting emails for $UserMailbox..." -ForegroundColor Cyan
+                        Write-Host "Exporting emails for $UserMailbox..." -ForegroundColor Cyan -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         
                         # Initialize array to hold emails
                         $EmailsToExport = @()
@@ -1017,34 +1076,34 @@ Switch ($choice) {
                             # Export emails to the specified folder
                             Export-Email -Emails $EmailsToExport -FolderPath $FolderPath -User $UserMailbox
                         } else {
-                            Write-Warning "No emails found for $UserMailbox."
-                            Write-Log -Message "No emails found for $UserMailbox"
+                            Write-Warning "No emails found for $UserMailbox." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+                            Write-Log -Message "No emails found for $UserMailbox" 
                         }
                     } else {
-                        Write-Warning "Failed to create folder for $UserMailbox."
+                        Write-Warning "Failed to create folder for $UserMailbox." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         Write-Log -Message "Failed to create folder for $UserMailbox"
                     }
 
                     # Log export start
                     Write-Log -Message "Export started for user $UserMailbox"
                 } else {
-                    Write-Warning "Failed to retrieve user information."
+                    Write-Warning "Failed to retrieve user information." -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                     Write-Log -Message "Failed to retrieve user information"
                 }
             } catch {
-                Write-Warning "Error while exporting emails for one user. Error: $($_.Exception.Message)"
+                Write-Warning "Error while exporting emails for one user. Error: $($_.Exception.Message)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 Write-Log -Message "Error exporting emails for one user: $($_.Exception.Message)"
             }
         } else {
-            Write-Host "Microsoft Graph SDK is not connected. Please run option 1 to connect to Graph." -ForegroundColor Yellow
+            Write-Host "Microsoft Graph SDK is not connected. Please run option 1 to connect to Graph." -ForegroundColor Yellow -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         }
     } catch {
-        Write-Warning "Could not process Option 3. Error: $($_.Exception.Message)"
+        Write-Warning "Could not process Option 3. Error: $($_.Exception.Message)" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         Write-Log -Message "Error processing Option 3: $($_.Exception.Message)"
     }
 
     # Wait and return to the menu
-    Read-Host "Press [Enter] to reload the menu"
+    Read-Host "Press [Enter] to reload the menu" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
     Start-Sleep -Seconds 1
     Clear-Host
     [System.Console]::Clear()
@@ -1058,7 +1117,7 @@ Switch ($choice) {
                 Write-Log -Message "Option 4 : Export All Emails in Date Range for One User[Dump Format]"
 	    try {
 	        # Check Microsoft Graph SDK connection
-	        $graphContext = Get-MgContext -ErrorAction Stop
+	        $graphContext = Get-MgContext -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
 	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
 	            try {
 	                # Retrieve the user mailbox
@@ -1378,6 +1437,8 @@ Default {
             }
         }
 
+    Write-log -Message "Ended Function Show-Menu"
+
     #Clean up
     [System.Console]::Clear()
     [System.GC]::Collect()
@@ -1413,7 +1474,7 @@ if ([System.Environment]::OSVersion.Version.Major -ge 10) {
             Read-Host "Press [ENTER] to load the Script"
             #Clear-Host
             [System.Console]::Clear()
-            $title = "=== Export Emails ==="
+            $title = "=== Export User Emails ==="
             $menuprompt = "=" * $title.Length
             Write-Host $menuprompt -ForegroundColor Yellow
             Write-Host $title -ForegroundColor Red
