@@ -1009,7 +1009,8 @@ Switch ($choice) {
             Write-Log -Message "Already connected to Microsoft Graph"
         } else {
             # Prompt user for authentication method
-            $AuthMethod = Read-Host "Do you want to connect using (A)pplication Authentication or (D)elegated Authentication? [A/D]"
+	Write-Warning "If using (A) the application needs Mail.ReadBasic.All API permission"
+            $AuthMethod = Read-Host "Do you want to connect using (A)pplication Authentication[All Mailboxes Export] or (D)elegated Authentication[Only Auth Mailbox Export]? [A/D]"
 
             Switch ($AuthMethod.ToUpper()) {
                 "A" {
@@ -1027,7 +1028,12 @@ Switch ($choice) {
                         # Connect using application authentication
                         Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -CertificateThumbprint $CertThumbprint -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         Write-Log -Message "Successfully connected to Microsoft Graph using Application Authentication"
-                        Write-Host "Successfully connected to Microsoft Graph using Application Authentication." -ForegroundColor Green
+                        IF ((get-mgcontext).Scopes | where {$_ -EQ "Mail.ReadBasic.All"}){
+			Write-Host "Current Connection has permission Mail.ReadBasic.All n`"  -ForegroundColor Green
+		  }ELSEIF(!((get-mgcontext).Scopes | where {$_ -EQ "Mail.ReadBasic.All"})){
+			Write-Warning "Connection does not have Mail.ReadBasic.All please add this API permission to your application."
+		 }
+		  Write-Host "Successfully connected to Microsoft Graph using Application Authentication." -ForegroundColor Green
                     } else {
                         Write-Warning "Invalid input for Application Authentication. Please ensure all fields are filled."
                         Write-Log -Message "Application Authentication failed: Missing input"
