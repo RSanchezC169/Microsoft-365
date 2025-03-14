@@ -25,18 +25,18 @@ Script Version: 1
 OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
 PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
 Description of Script: 
-NOTE: This script only works with the mailbox that was authenticated to during connect-MgGraph, 
-example if you connect with USER@DOMAIN.COM you can only export emails from their mailbox this does not connect to all mailboxes in the tenant.
+NOTE: This script allows you to connect to Microsoft Graph either by delegate or application. When connecting via delegate you can only export emails from the mailbox you authenticated to.
+To export emails from any mailbox connect to Microsoft Graph via application.
 
 This PowerShell script is designed to automate email export operations by interacting with Microsoft Graph API. 
 It provides an interactive menu system to execute various tasks, including connecting to Microsoft Graph, retrieving emails with various filters, and exporting them to a structured file system. 
 It emphasizes logging, validation, and an enhanced user experience through a cleanly defined menu-driven interface.
 #>
 ##################################################################################################################################################################
-#==============================Beginning of script================================================================================================================
+#==============================Beginning of script======================================================================================================================
 ##################################################################################################################################################################
 ##################################################################################################################################################################
-#==============================Functions==========================================================================================================================
+#==============================Functions==============================================================================================================================
 ##################################################################################################################################################################
 # Define the global log file path at the start of the script
 $Global:LogFile = "C:\Rsanchezc169ScriptLogs\Log_$(Get-Date -Format 'MM_dd_yyyy_hh_mm_tt').log"
@@ -960,11 +960,14 @@ Clear-Host
 
 Draw-Line
 $graphContext = Get-MgContext  -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-IF ($graphContext -and $graphContext.Account -and $graphContext.TenantId){
+IF ($graphContext -AND ($graphContext.AuthType -EQ "Delegated")){
 	Write-Host "Currently Connected to Microsoft Graph!"  -ForegroundColor Green
 	Write-Host "Connected as $($graphContext.Account), emails can be exported for this account!"  -ForegroundColor Green
-}ELSEIF(!($graphContext -and $graphContext.Account -and $graphContext.TenantId)){
+	Write-Host "You are connected via $($graphContext.AuthType)"  -ForegroundColor Green
+}ELSEIF(!($graphContext)){
 	Write-Host "Not Connected to Microsoft Graph Currently, run option 1: Connect to Microsoft Graph"  -ForegroundColor Red
+}ELSEIF($graphContext -and $graphContext.TenantId -and $graphContext.ClientId -and $graphContext.CertificateThumbprint -AND ($graphContext.AuthType -EQ "AppOnly")){
+	Write-Host "You are connected via application you can export emails from any users mailbox"   -ForegroundColor Green
 }
 # Menu Display Logic
 Draw-Line
@@ -990,36 +993,83 @@ Select a task by number or Q to quit ::
 "@
         $choice = Read-Host $menu
 Switch ($choice) {
-            "1" {
-                # Connect to Microsoft Graph
-                Clear-Host
-	     [System.Console]::Clear()
-                Write-Host "Option 1: Connect to Microsoft Graph" -ForegroundColor Cyan
-               Write-Log -Message "Processing Option 1: Connect to Microsoft Graph"
-                try {
-                    $graphContext = Get-MgContext  -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-                    if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
-                        Write-Host "User is already connected to Microsoft Graph." -ForegroundColor Green -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-                        Write-Log -Message "Already connected to Microsoft Graph"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-                    } elseif(!($graphContext -and $graphContext.Account -and $graphContext.TenantId)) {
-		$Scopes = @(
-		"User.ReadWrite.All", 
-		"email",
-		"Mail.ReadBasic"
-		)
-		Connect-MgGraph -Scope $Scopes  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-                       Write-Log -Message "Successfully connected to Microsoft Graph"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+            
+"1" {
+    # Connect to Microsoft Graph
+    Clear-Host
+    [System.Console]::Clear()
+    Write-Host "Option 1: Connect to Microsoft Graph" -ForegroundColor Cyan
+    Write-Log -Message "Processing Option 1: Connect to Microsoft Graph"
+
+    try {
+        # Check if already connected
+        $graphContext = Get-MgContext -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        if ($graphContext) {
+            Write-Host "User is already connected to Microsoft Graph." -ForegroundColor Green
+            Write-Log -Message "Already connected to Microsoft Graph"
+        } else {
+            # Prompt user for authentication method
+            $AuthMethod = Read-Host "Do you want to connect using (A)pplication Authentication or (D)elegated Authentication? [A/D]"
+
+            Switch ($AuthMethod.ToUpper()) {
+                "A" {
+                    Write-Host "Application Authentication selected" -ForegroundColor Cyan
+
+                    # Prompt for Application Authentication details
+                    $ClientId = Read-Host "Enter the Client ID"
+                    $TenantId = Read-Host "Enter the Tenant ID"
+                    $CertThumbprint = Read-Host "Enter the Certificate Thumbprint"
+
+                    if (-not [string]::IsNullOrWhiteSpace($ClientId) -and -not [string]::IsNullOrWhiteSpace($TenantId) -and -not [string]::IsNullOrWhiteSpace($CertThumbprint)) {
+                        Write-Host "Connecting using Application Authentication..." -ForegroundColor Cyan
+                        Write-Log -Message "Attempting Application Authentication with Client ID: $ClientId, Tenant ID: $TenantId"
+
+                        # Connect using application authentication
+                        Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -CertificateThumbprint $CertThumbprint -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+                        Write-Log -Message "Successfully connected to Microsoft Graph using Application Authentication"
+                        Write-Host "Successfully connected to Microsoft Graph using Application Authentication." -ForegroundColor Green
+                    } else {
+                        Write-Warning "Invalid input for Application Authentication. Please ensure all fields are filled."
+                        Write-Log -Message "Application Authentication failed: Missing input"
                     }
-                } catch {
-                    Write-Warning "Could not connect to Microsoft Graph. Error: $($_.Exception.Message)"
-                    Write-Log -Message "Error connecting to Microsoft Graph: $($_.Exception.Message)"  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 }
-                Read-Host "Press [Enter] to reload the menu" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-                Start-Sleep -Seconds 1
-	     Clear-Host
-	    #[System.Console]::Clear()
-	     Show-Menu
+                "D" {
+                    Write-Host "Delegated Authentication selected" -ForegroundColor Cyan
+
+                    # Define scopes for delegated authentication
+                    $Scopes = @(
+                        "User.ReadWrite.All", 
+                        "email",
+                        "Mail.ReadBasic"
+                    )
+
+                    Write-Host "Connecting using Delegated Authentication..." -ForegroundColor Cyan
+                    Write-Log -Message "Attempting Delegated Authentication with scopes: $($Scopes -join ', ')"
+
+                    # Connect using delegated authentication
+                    Connect-MgGraph -Scope $Scopes -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+                    Write-Log -Message "Successfully connected to Microsoft Graph using Delegated Authentication"
+                    Write-Host "Successfully connected to Microsoft Graph using Delegated Authentication." -ForegroundColor Green
+                }
+                Default {
+                    Write-Warning "Invalid selection. Please select either A for Application Authentication or D for Delegated Authentication."
+                    Write-Log -Message "Invalid selection for authentication method."
+                }
             }
+        }
+    } catch {
+        # Handle connection errors
+        Write-Warning "Could not connect to Microsoft Graph. Error: $($_.Exception.Message)"
+        Write-Log -Message "Error connecting to Microsoft Graph: $($_.Exception.Message)"
+    }
+
+    # Wait for user input and return to menu
+    Read-Host "Press [Enter] to reload the menu"
+    Start-Sleep -Seconds 1
+    Clear-Host
+    [System.Console]::Clear()
+    Show-Menu
+}
 "2" {
                 # Disconnect from Microsoft Graph
                 Clear-Host
@@ -1028,7 +1078,7 @@ Switch ($choice) {
                 Write-Log -Message "Processing Option 2: Disconnect from Microsoft Graph"
                 try {
                     $graphContext = Get-MgContext -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-                    if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+                    if ($graphContext) {
                         Disconnect-MgGraph
                         Write-Host "Disconnected from Microsoft Graph." -ForegroundColor Green -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         Write-Log -Message "Disconnected from Microsoft Graph"
@@ -1055,7 +1105,7 @@ Switch ($choice) {
     try {
         # Check Microsoft Graph SDK connection
         $graphContext = Get-MgContext -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+        if ($graphContext) {
             try {
                 # Retrieve the user mailbox
                 Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
@@ -1119,7 +1169,7 @@ Switch ($choice) {
 	    try {
 	        # Check Microsoft Graph SDK connection
 	        $graphContext = Get-MgContext -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	        if ($graphContext) {
 	            try {
 	                # Retrieve the user mailbox
 	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
@@ -1181,7 +1231,7 @@ Switch ($choice) {
 	    try {
 	        # Check Microsoft Graph SDK connection
 	        $graphContext = Get-MgContext -ErrorAction Stop
-	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	        if ($graphContext) {
 	            try {
 	                # Retrieve the user mailbox
 	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
@@ -1242,7 +1292,7 @@ Switch ($choice) {
 	    try {
 	        # Check Microsoft Graph SDK connection
 	        $graphContext = Get-MgContext -ErrorAction Stop
-	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	        if ($graphContext) {
 	            try {
 	                # Retrieve the user mailbox
 	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
@@ -1304,7 +1354,7 @@ Switch ($choice) {
 	    try {
 	        # Check Microsoft Graph SDK connection
 	        $graphContext = Get-MgContext -ErrorAction Stop
-	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	        if ($graphContext) {
 	            try {
 	                # Retrieve the user mailbox
 	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
@@ -1366,7 +1416,7 @@ Switch ($choice) {
 	    try {
 	        # Check Microsoft Graph SDK connection
 	        $graphContext = Get-MgContext -ErrorAction Stop
-	        if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+	        if ($graphContext) {
 	            try {
 	                # Retrieve the user mailbox
 	                Write-Host "Retrieving user mailbox..." -ForegroundColor Cyan
@@ -1447,9 +1497,9 @@ Default {
 
 }
 ##################################################################################################################################################################
-#=============================End of Functions====================================================================================================================
+#=============================End of Functions=========================================================================================================================
 ##################################################################################################################################################################
-#==============================Main===============================================================================================================================
+#==============================Main================================================================================================================================
 ##################################################################################################################################################################
 Write-Log -Message "Script Started"
 
@@ -1542,8 +1592,8 @@ Clear-Host
 #At the end open the log file for review
 Notepad $Global:LogFile
 ##################################################################################################################################################################
-#==============================End of Main========================================================================================================================
+#==============================End of Main===========================================================================================================================
 ##################################################################################################################################################################
 ##################################################################################################################################################################
-#==============================End of Script======================================================================================================================
+#==============================End of Script==========================================================================================================================
 ##################################################################################################################################################################
