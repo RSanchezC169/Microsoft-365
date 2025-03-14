@@ -33,10 +33,10 @@ It provides an interactive menu system to execute various tasks, including conne
 It emphasizes logging, validation, and an enhanced user experience through a cleanly defined menu-driven interface.
 #>
 ##################################################################################################################################################################
-#==============================Beginning of script======================================================================================================================
+#==============================Beginning of script================================================================================================================
 ##################################################################################################################################################################
 ##################################################################################################################################################################
-#==============================Functions==============================================================================================================================
+#==============================Functions==========================================================================================================================
 ##################################################################################################################################################################
 # Define the global log file path at the start of the script
 $Global:LogFile = "C:\Rsanchezc169ScriptLogs\Log_$(Get-Date -Format 'MM_dd_yyyy_hh_mm_tt').log"
@@ -72,7 +72,7 @@ Function Load-Module {
     )
 
     Foreach ($Module in $Modules) {
-        Write-Progress -Activity "Processing Module: $($Module)" -Status "Starting task..." -PercentComplete 0 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        Write-Progress -Activity "Processing Module: $($Module)" -Status "Starting task..." -PercentComplete 0  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
         
         Try {
             # Step 1: Check if the module is installed
@@ -81,7 +81,7 @@ Function Load-Module {
                 Write-Warning "Module '$Module' is already installed"
                 Write-Log -Message "Module '$Module' is already installed"
             } else {
-                Write-Progress -Activity "Processing Module: $($Module)" -Status "Installing module..." -PercentComplete 40 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+                Write-Progress -Activity "Processing Module: $($Module)" -Status "Installing module..." -PercentComplete 40  -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 Install-Module -Name "$Module*" -Force -Scope CurrentUser -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                 Write-Log -Message "Module '$Module' installed successfully"
             }
@@ -172,7 +172,7 @@ Function Set-Environment {
         Write-Log -Message "PowerShellGet module loaded successfully"
 
         Write-Progress -Activity "Environment Setup" -Status "Loading Microsoft.Graph module..." -PercentComplete 50 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-        Load-Module -Module "Microsoft.Graph.Authentication", "Microsoft.Graph.Groups", "Microsoft.Graph.Users", "Microsoft.Graph.Mail"
+        Load-Module -Module "Microsoft.Graph.Authentication", "Microsoft.Graph.Users", "Microsoft.Graph.Mail","Microsoft.Graph.Beta.Mail"
         Write-Log -Message "Microsoft.Graph module loaded successfully"
 
         # Step 5: Set window properties
@@ -530,8 +530,12 @@ Function Export-Email {
                 }
 
                 # Export the email to the file
-                Get-MgUserMessageContent -UserId $User -MessageId $Message.Id -OutFile $OutFile
+	     $Global:ProgressPreference = "SilentlyContinue"
+                #Get-MgBetaUserMessageContent -ProgressAction SilentlyContinue  -UserId $User -MessageId $Message.Id -OutFile $OutFile
+                Get-MgUserMessageContent -UserId $User -MessageId $Message.Id -OutFile $OutFile 
+	     $Global:ProgressPreference = "Continue"
                 Write-Log -Message "Email exported successfully: $OutFile"
+	     #Write-Host "Exported email $($Message.Subject)"
             } catch {
                 Write-Log -Message "Error exporting email: $($_.Exception.Message)"
                 Write-Warning "Failed to export email: $($Message.Subject). Check logs for details."
@@ -899,6 +903,14 @@ Function Show-Menu {
 Clear-Host
 [System.Console]::Clear()
 
+$graphContext = Get-MgContext  -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+IF ($graphContext -and $graphContext.Account -and $graphContext.TenantId){
+	Write-Host "Currently Connected to Microsoft Graph!"  -ForegroundColor Green
+	Write-Host `n
+}ELSEIF(!($graphContext -and $graphContext.Account -and $graphContext.TenantId)){
+	Write-Host "Not Connected to Microsoft Graph Currently"  -ForegroundColor Red
+	Write-Host `n
+}
 # Menu Display Logic
 Write-Host "------------------------------------" -ForegroundColor Green
 Write-Host "    Welcome to the Email Exporter" -ForegroundColor Green
@@ -1373,9 +1385,9 @@ Default {
 
 }
 ##################################################################################################################################################################
-#=============================End of Functions=========================================================================================================================
+#=============================End of Functions====================================================================================================================
 ##################################################################################################################################################################
-#==============================Main================================================================================================================================
+#==============================Main===============================================================================================================================
 ##################################################################################################################################################################
 Write-Log -Message "Script Started"
 
@@ -1468,8 +1480,8 @@ Clear-Host
 #At the end open the log file for review
 Notepad $Global:LogFile
 ##################################################################################################################################################################
-#==============================End of Main===========================================================================================================================
+#==============================End of Main========================================================================================================================
 ##################################################################################################################################################################
 ##################################################################################################################################################################
-#==============================End of Script==========================================================================================================================
+#==============================End of Script======================================================================================================================
 ##################################################################################################################################################################
