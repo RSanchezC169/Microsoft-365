@@ -1029,7 +1029,7 @@ Switch ($choice) {
                         Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -CertificateThumbprint $CertThumbprint -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
                         Write-Log -Message "Successfully connected to Microsoft Graph using Application Authentication"
                         IF ((get-mgcontext).Scopes | where {$_ -EQ "Mail.ReadBasic.All"}){
-			Write-Host "Current Connection has permission Mail.ReadBasic.All n`"  -ForegroundColor Green
+			Write-Host "Current Connection has permission Mail.ReadBasic.All"  -ForegroundColor Green
 		  }ELSEIF(!((get-mgcontext).Scopes | where {$_ -EQ "Mail.ReadBasic.All"})){
 			Write-Warning "Connection does not have Mail.ReadBasic.All please add this API permission to your application."
 		 }
@@ -1524,7 +1524,12 @@ if ([System.Environment]::OSVersion.Version.Major -ge 10) {
             Write-Log -Message "PowerShell version meets the requirement (5 or above)"
             # Clear the screen and set the environment
             Clear-Host
-            #[System.Console]::Clear()
+            [System.Console]::Clear()
+	    #Clean up
+	    [System.Console]::Clear()
+	    [System.GC]::Collect()
+	    [System.GC]::WaitForPendingFinalizers()
+	
             Set-Environment
 
             # Display script details
