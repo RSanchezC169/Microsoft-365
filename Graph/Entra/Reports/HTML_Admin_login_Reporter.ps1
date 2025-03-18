@@ -53,6 +53,36 @@ $Timestamp = (Get-Date).ToString("yyyy-MM-dd hh:mm:ss tt")
 }
 ##################################################################################################################################################################
 ##################################################################################################################################################################
+FUNCTION ConnectMgGraph {
+try {
+    # Check if already connected
+    $graphContext = Get-MgContext -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+    if ($graphContext -and $graphContext.Account -and $graphContext.TenantId) {
+        Write-Host "User is already connected to Microsoft Graph." -ForegroundColor Green
+        Write-Log -Message "Already connected to Microsoft Graph"
+    } else {
+        # Define the scopes for connection
+        $Scopes = @(
+            "AuditLog.Read.All",
+	"Directory.Read.All"
+        )
+
+        # Connect to Microsoft Graph
+        Write-Host "Connecting to Microsoft Graph..." -ForegroundColor Cyan
+        Write-Log -Message "Attempting connection with scopes: $($Scopes -join ', ')"
+        Connect-MgGraph -Scope $Scopes -ErrorAction Stop -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+
+        Write-Log -Message "Successfully connected to Microsoft Graph"
+        Write-Host "Successfully connected to Microsoft Graph." -ForegroundColor Green
+    }
+} catch {
+    # Handle connection errors
+    Write-Warning "Could not connect to Microsoft Graph. Error: $($_.Exception.Message)"
+    Write-Log -Message "Error connecting to Microsoft Graph: $($_.Exception.Message)"
+}
+}
+##################################################################################################################################################################
+##################################################################################################################################################################
 # Function to retrieve administrative roles and their members
 Function Get-AdminRolesAndMembers {
     Write-Log -Message "Retrieving all administrative roles..."
@@ -266,6 +296,8 @@ Function GenerateAdminSignInHtml {
 try {
     Write-Log -Message "Script execution started."
     Write-Host "Retrieving tenant administrators and their roles..."
+
+    ConnectMgGraph
 
     # Step 1: Retrieve all admin users
     $admins = Get-AdminRolesAndMembers
