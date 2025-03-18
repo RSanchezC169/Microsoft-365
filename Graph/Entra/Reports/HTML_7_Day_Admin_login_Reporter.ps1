@@ -166,7 +166,13 @@ Function Get-AdminSignInLogs {
 
             Write-Log -Message "Fetching sign-in logs for admin: $($admin)"
             try {
-                $logs = Get-MgAuditLogSignIn -All | Where-Object {$_.UserPrincipalName -eq $admin}
+	        $startDate = (Get-Date).AddDays(-7).ToString("yyyy-MM-dd")
+	        $startDate = $startDate + "T00:00:00Z"
+	        $endDate = (Get-Date).AddDays(+1).ToString("yyyy-MM-dd")
+	        $endDate = $endDate + "T23:59:59Z"
+	       $logs = Get-MgAuditLogSignIn -Filter "createdDateTime ge $startDate and createdDateTime le $endDate" -All  | Where-Object {$_.UserPrincipalName -eq $admin}
+                #$logs = Get-MgAuditLogSignIn -All | Where-Object {$_.UserPrincipalName -eq $admin}
+	     #$logs = Get-MgAuditLogSignIn -Filter "UserPrincipalName eq '$admin'" -All
                 foreach ($log in $logs) {
                     $signInLogs += [PSCustomObject]@{
                         UserPrincipalName = $log.UserPrincipalName
