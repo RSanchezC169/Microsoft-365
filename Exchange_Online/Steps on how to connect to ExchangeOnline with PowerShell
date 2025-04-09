@@ -65,5 +65,12 @@ Step 9: Run Commands such as:
 
 Step 10: At the end disconnect from Exchange Online.
 Disconnect-ExchangeOnline -ConnectionId $((Get-ConnectionInformation).ConnectionId) –Confirm:$FALSE
+
+Additional Resources:
+Install Microsoft Teams PowerShell Module[https://learn.microsoft.com/en-us/microsoftteams/teams-powershell-install]
+MicrosoftTeams module[https://www.powershellgallery.com/packages/MicrosoftTeams/6.4.0]
+MicrosoftTeamsPowerShell cmdlet[https://learn.microsoft.com/en-us/powershell/module/teams/?view=teams-ps]
+Connect-MicrosoftTeams[https://learn.microsoft.com/en-us/powershell/module/teams/connect-microsoftteams?view=teams-ps]
+Disconnect-MicrosoftTeams[https://learn.microsoft.com/en-us/powershell/module/teams/disconnect-microsoftteams?view=teams-ps]
 ##################################################################################################################################################################
 ##################################################################################################################################################################
