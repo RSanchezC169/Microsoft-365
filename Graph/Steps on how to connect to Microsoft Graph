@@ -1,0 +1,72 @@
+##################################################################################################################################################################
+##################################################################################################################################################################
+<#
+                 _..--+~/@-~--.
+             _-=~      (  .   "}
+          _-~     _.--=.\ \""""
+        _~      _-       \ \_\
+       =      _=          '--'
+      '      =                             .
+     :      :       ____                   '=_. ___
+___  |      ;                            ____ '~--.~.
+     ;      ;                               _____  } |
+  ___=       \ ___ __     __..-...__           ___/__/__
+     :        =_     _.-~~          ~~--.__
+_____ \         ~-+-~                   ___~=_______
+     ~@#~~ == ...______ __ ___ _--~~--_
+                                                    =
+██████╗ ███████╗ █████╗ ███╗   ██╗ ██████╗██╗  ██╗███████╗███████╗ ██████╗ ██╗ ██████╗ █████╗ 
+██╔══██╗██╔════╝██╔══██╗████╗  ██║██╔════╝██║  ██║██╔════╝╚══███╔╝██╔════╝███║██╔════╝██╔══██╗
+██████╔╝███████╗███████║██╔██╗ ██║██║     ███████║█████╗    ███╔╝ ██║     ╚██║███████╗╚██████║
+██╔══██╗╚════██║██╔══██║██║╚██╗██║██║     ██╔══██║██╔══╝   ███╔╝  ██║      ██║██╔═══██╗╚═══██║
+██║  ██║███████║██║  ██║██║ ╚████║╚██████╗██║  ██║███████╗███████╗╚██████╗ ██║╚██████╔╝█████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝ ╚═════╝ ╚════╝ 
+Script Version: 1
+OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
+PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
+Description: Basic Steps to connecting to Microsoft Graph with PowerShell.
+#>
+##################################################################################################################################################################
+##################################################################################################################################################################
+Step 1: Open PowerShell as an administrator.
+Windows Key + R
+powershell Start-Process powershell -verb runAs
+
+Step 2: Set your execution policy for current process to unrestricted.
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+
+Step 3: Install Microsoft graph modules.
+Install-Module -Name Microsoft.Graph
+
+Step 4: Check if Microsoft Graph modules were installed.
+Get-InstalledModule –Name Microsoft.Graph*
+
+Step 4: Update Microsoft Graph modules.
+Update-Module -Name "Microsoft.Graph.Authentication", "MODULE NEEDED"
+
+Step 5: Import Microsoft Graph modules.
+Import-Module -Name "Microsoft.Graph.Authentication",  "MODULE NEEDED"
+
+Step 6: Connect to Microsoft Graph with the appropriate scopes needed to run your commands and  depending on the commands you will either authenticate as the user or a global admin. 
+Connect-MgGraph -Scopes "SCOPES NEEDED"
+ 
+* Delegate Connection: partner admin needs to connect first then we can connect.
+Connect-MgGraph -Scopes "User.Read.All“ –TenantId $(Clear-Host;Read-Host “Enter in org tenant ID format[xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx] -> “)
+
+Step 7: Run commands such as:
+(Get-MgUser).DisplayName | Sort-Object
+
+Step 8: At the end disconnect from Microsoft Graph.
+Disconnect-MgGraph
+
+• Note:
+	
+	• Finding graph module for a command
+		
+		○ Find-MgGraphCommand -command $(Clear-Host;Read-Host “Enter in command name -> “) | Select-Object -First 1 -Property Module
+	
+	• Finding graph permissions for a command
+		
+		○ Find-MgGraphCommand -command $(Clear-Host; Read-Host “Enter in command name -> “) | Select-Object -First 1 -ExpandProperty Permissions
+##################################################################################################################################################################
+##################################################################################################################################################################
