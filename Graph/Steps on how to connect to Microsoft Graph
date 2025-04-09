@@ -59,6 +59,15 @@ Step 7: Run commands such as:
 Step 8: At the end disconnect from Microsoft Graph.
 Disconnect-MgGraph
 
+Additional Information
+Microsoft Graph PowerShell documentation[https://learn.microsoft.com/en-us/powershell/microsoftgraph/?view=graph-powershell-1.0]
+Connect-MgGraph[https://learn.microsoft.com/en-us/powershell/module/microsoft.graph.authentication/connect-mggraph?view=graph-powershell-1.0]
+Disconnect-MgGraph[https://learn.microsoft.com/en-us/powershell/module/microsoft.graph.authentication/disconnect-mggraph?view=graph-powershell-1.0]
+Using Find-MgGraphPermission cmdlet[https://learn.microsoft.com/en-us/powershell/microsoftgraph/find-mg-graph-permission?view=graph-powershell-1.0]
+Using Find-MgGraphCommand cmdlet[https://learn.microsoft.com/en-us/powershell/microsoftgraph/find-mg-graph-command?view=graph-powershell-1.0]
+Microsoft Graph permissions reference[https://learn.microsoft.com/en-us/graph/permissions-reference]
+Overview of Microsoft Graph permissions[https://learn.microsoft.com/en-us/graph/permissions-overview?tabs=http]
+
 • Note:
 	
 	• Finding graph module for a command
