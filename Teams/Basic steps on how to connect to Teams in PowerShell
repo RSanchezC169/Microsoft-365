@@ -1,0 +1,63 @@
+
+##################################################################################################################################################################
+##################################################################################################################################################################
+<#
+                 _..--+~/@-~--.
+             _-=~      (  .   "}
+          _-~     _.--=.\ \""""
+        _~      _-       \ \_\
+       =      _=          '--'
+      '      =                             .
+     :      :       ____                   '=_. ___
+___  |      ;                            ____ '~--.~.
+     ;      ;                               _____  } |
+  ___=       \ ___ __     __..-...__           ___/__/__
+     :        =_     _.-~~          ~~--.__
+_____ \         ~-+-~                   ___~=_______
+     ~@#~~ == ...______ __ ___ _--~~--_
+                                                    =
+██████╗ ███████╗ █████╗ ███╗   ██╗ ██████╗██╗  ██╗███████╗███████╗ ██████╗ ██╗ ██████╗ █████╗ 
+██╔══██╗██╔════╝██╔══██╗████╗  ██║██╔════╝██║  ██║██╔════╝╚══███╔╝██╔════╝███║██╔════╝██╔══██╗
+██████╔╝███████╗███████║██╔██╗ ██║██║     ███████║█████╗    ███╔╝ ██║     ╚██║███████╗╚██████║
+██╔══██╗╚════██║██╔══██║██║╚██╗██║██║     ██╔══██║██╔══╝   ███╔╝  ██║      ██║██╔═══██╗╚═══██║
+██║  ██║███████║██║  ██║██║ ╚████║╚██████╗██║  ██║███████╗███████╗╚██████╗ ██║╚██████╔╝█████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝ ╚═════╝ ╚════╝ 
+Script Version: 1
+OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
+PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
+Description: Basic Steps to connecting to Teams with PowerShell.
+#>
+##################################################################################################################################################################
+##################################################################################################################################################################
+Step 1: Open PowerShell as an administrator.
+Windows Key + R
+powershell Start-Process powershell -verb runAs
+
+Step 2: Set your execution policy for current process to unrestricted.
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+
+Step 3: Install Teams module.
+Install-Module –Name “MicrosoftTeams”
+
+Step 4: Check if the Teams module was installed.
+Get-InstalledModule –Name “MicrosoftTeams”
+
+Step 5: Update the Teams module.
+Update-Module –Name “MicrosoftTeams”
+
+Step 6: Import the Teams module.
+Import-Module –Name “MicrosoftTeams”
+
+Step 7: Connect to Teams with a Global Admin account.
+Connect-MicrosoftTeams
+
+* Delegate Connection:
+Connect-MicrosoftTeams –TenantId $(Clear-Host;Read-Host “Enter in org tenant ID format[xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx]  ->“)
+
+Step 8: Run Commands, such as:
+(Get-Team).DisplayName | Sort-Object
+
+Step 9: At the end disconnect from Teams.
+Disconnect-MicrosoftTeams
+##################################################################################################################################################################
+##################################################################################################################################################################
