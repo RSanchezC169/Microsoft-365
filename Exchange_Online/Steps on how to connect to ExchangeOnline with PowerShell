@@ -1,0 +1,69 @@
+##################################################################################################################################################################
+##################################################################################################################################################################
+<#
+                 _..--+~/@-~--.
+             _-=~      (  .   "}
+          _-~     _.--=.\ \""""
+        _~      _-       \ \_\
+       =      _=          '--'
+      '      =                             .
+     :      :       ____                   '=_. ___
+___  |      ;                            ____ '~--.~.
+     ;      ;                               _____  } |
+  ___=       \ ___ __     __..-...__           ___/__/__
+     :        =_     _.-~~          ~~--.__
+_____ \         ~-+-~                   ___~=_______
+     ~@#~~ == ...______ __ ___ _--~~--_
+                                                    =
+██████╗ ███████╗ █████╗ ███╗   ██╗ ██████╗██╗  ██╗███████╗███████╗ ██████╗ ██╗ ██████╗ █████╗ 
+██╔══██╗██╔════╝██╔══██╗████╗  ██║██╔════╝██║  ██║██╔════╝╚══███╔╝██╔════╝███║██╔════╝██╔══██╗
+██████╔╝███████╗███████║██╔██╗ ██║██║     ███████║█████╗    ███╔╝ ██║     ╚██║███████╗╚██████║
+██╔══██╗╚════██║██╔══██║██║╚██╗██║██║     ██╔══██║██╔══╝   ███╔╝  ██║      ██║██╔═══██╗╚═══██║
+██║  ██║███████║██║  ██║██║ ╚████║╚██████╗██║  ██║███████╗███████╗╚██████╗ ██║╚██████╔╝█████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝ ╚═════╝ ╚════╝ 
+Script Version: 1
+OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
+PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
+Description: Basic Steps to connecting to Exchange Online with PowerShell.
+#>
+##################################################################################################################################################################
+##################################################################################################################################################################
+Step 1: Open PowerShell as an administrator.
+Windows Key + R
+powershell Start-Process powershell -verb runAs
+
+Step 2: Set your execution policy for current process to unrestricted.
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+
+Step 3: Install Exchange Online module.
+Install-Module –Name “ExchangeOnlineManagement”
+
+Step 4: Check if the Exchange Online module was installed.
+Get-InstalledModule –Name “ExchangeOnlineManagement”
+
+Step 5: Update the Exchange Online module.
+Update-Module –Name “ExchangeOnlineManagement”
+
+Step 6: Import the Exchange Online Module.
+Import-Module –Name “ExchangeOnlineManagement”
+
+Step 7: Connect to Exchange Online with a Global Admin account.
+Connect-ExchangeOnline
+or
+Connect-ExchangeOnline -ConnectionUri  “https://outlook.office365.com/powershell-liveid/”
+
+*Delegate Connection:
+Connect-ExchangeOnline –DelegatedOrganization $(Clear-Host;Read-Host “Enter in org domain name format[domain.onmicrosoft.com] or tenant ID format[xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx]  -> “) 
+For PowerShell 7:
+Use the –Device Parameter
+
+Step 8: Check if you are connected to Exchange Online.
+Get-ConnectionInformation
+
+Step 9: Run Commands such as:
+(Get-Mailbox –ResultSize Unlimited).DisplayName | Sort-Object
+
+Step 10: At the end disconnect from Exchange Online.
+Disconnect-ExchangeOnline -ConnectionId $((Get-ConnectionInformation).ConnectionId) –Confirm:$FALSE
+##################################################################################################################################################################
+##################################################################################################################################################################
