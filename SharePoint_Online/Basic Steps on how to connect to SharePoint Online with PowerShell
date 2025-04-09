@@ -58,5 +58,12 @@ Step 8: Run Commands such as:
 
 Step 9: At the end disconnect from SharePoint Online.
 Disconnect-SPOService
+
+Additional Resources:
+Get started with SharePoint Online Management Shell[https://learn.microsoft.com/en-us/powershell/sharepoint/sharepoint-online/connect-sharepoint-online]
+Microsoft.Online.SharePoint.PowerShell.cmdlet[https://learn.microsoft.com/en-us/powershell/module/sharepoint-online/?view=sharepoint-ps]
+Microsoft.Online.SharePoint.PowerShell module[https://www.powershellgallery.com/packages/Microsoft.Online.SharePoint.PowerShell/16.0.23109.12000]
+Connect-SPOService[https://learn.microsoft.com/en-us/powershell/module/sharepoint-online/connect-sposervice?view=sharepoint-ps]
+Disconnect-SPOService[https://learn.microsoft.com/en-us/powershell/module/sharepoint-online/disconnect-sposervice?view=sharepoint-ps]
 ##################################################################################################################################################################
 ##################################################################################################################################################################
