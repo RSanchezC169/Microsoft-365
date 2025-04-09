@@ -1,0 +1,62 @@
+##################################################################################################################################################################
+##################################################################################################################################################################
+<#
+                 _..--+~/@-~--.
+             _-=~      (  .   "}
+          _-~     _.--=.\ \""""
+        _~      _-       \ \_\
+       =      _=          '--'
+      '      =                             .
+     :      :       ____                   '=_. ___
+___  |      ;                            ____ '~--.~.
+     ;      ;                               _____  } |
+  ___=       \ ___ __     __..-...__           ___/__/__
+     :        =_     _.-~~          ~~--.__
+_____ \         ~-+-~                   ___~=_______
+     ~@#~~ == ...______ __ ___ _--~~--_
+                                                    =
+██████╗ ███████╗ █████╗ ███╗   ██╗ ██████╗██╗  ██╗███████╗███████╗ ██████╗ ██╗ ██████╗ █████╗ 
+██╔══██╗██╔════╝██╔══██╗████╗  ██║██╔════╝██║  ██║██╔════╝╚══███╔╝██╔════╝███║██╔════╝██╔══██╗
+██████╔╝███████╗███████║██╔██╗ ██║██║     ███████║█████╗    ███╔╝ ██║     ╚██║███████╗╚██████║
+██╔══██╗╚════██║██╔══██║██║╚██╗██║██║     ██╔══██║██╔══╝   ███╔╝  ██║      ██║██╔═══██╗╚═══██║
+██║  ██║███████║██║  ██║██║ ╚████║╚██████╗██║  ██║███████╗███████╗╚██████╗ ██║╚██████╔╝█████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝ ╚═════╝ ╚════╝ 
+Script Version: 1
+OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
+PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
+Description: Basic Steps to connecting to SharePoint Online with PowerShell.
+#>
+##################################################################################################################################################################
+##################################################################################################################################################################
+Step 1: Open PowerShell as an administrator.
+Windows Key + R
+powershell Start-Process powershell -verb runAs
+
+Step 2: Set your execution policy for current process to unrestricted.
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+
+Step 3: Install SharePoint Online module.
+Install-Module –Name “Microsoft.Online.SharePoint.PowerShell”
+
+Step 4: Check if the SharePoint Online module was installed.
+Get-InstalledModule –Name “Microsoft.Online.SharePoint.PowerShell”
+
+Step 5: Update the SharePoint Online module.
+Update-Module –Name “Microsoft.Online.SharePoint.PowerShell”
+
+Step 6: Import the SharePoint Online Module.
+Import-Module –Name “Microsoft.Online.SharePoint.PowerShell”
+
+Step 7: Connect to SharePoint Online with a Global Admin account.
+Connect-SPOService –Url $(Clear-Host;Read-Host –Prompt “Enter in SharePoint Online Admin URL format[https://orgname-admin.sharepoint.com] -> “)
+
+* Delegate Connection:
+Connect-SPOService –Url $(Clear-Host;Read-Host –Prompt “Enter in SharePoint Online Admin URL format[https://orgname-admin.sharepoint.com] -> “)
+
+Step 8: Run Commands such as:
+(Get-SPOSite).Title | Sort-Object
+
+Step 9: At the end disconnect from SharePoint Online.
+Disconnect-SPOService
+##################################################################################################################################################################
+##################################################################################################################################################################
