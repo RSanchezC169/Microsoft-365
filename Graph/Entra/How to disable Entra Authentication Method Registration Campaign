@@ -1,0 +1,65 @@
+##################################################################################################################################################################
+##################################################################################################################################################################
+<#
+                 _..--+~/@-~--.
+             _-=~      (  .   "}
+          _-~     _.--=.\ \""""
+        _~      _-       \ \_\
+       =      _=          '--'
+      '      =                             .
+     :      :       ____                   '=_. ___
+___  |      ;                            ____ '~--.~.
+     ;      ;                               _____  } |
+  ___=       \ ___ __     __..-...__           ___/__/__
+     :        =_     _.-~~          ~~--.__
+_____ \         ~-+-~                   ___~=_______
+     ~@#~~ == ...______ __ ___ _--~~--_
+                                                    =
+██████╗ ███████╗ █████╗ ███╗   ██╗ ██████╗██╗  ██╗███████╗███████╗ ██████╗ ██╗ ██████╗ █████╗ 
+██╔══██╗██╔════╝██╔══██╗████╗  ██║██╔════╝██║  ██║██╔════╝╚══███╔╝██╔════╝███║██╔════╝██╔══██╗
+██████╔╝███████╗███████║██╔██╗ ██║██║     ███████║█████╗    ███╔╝ ██║     ╚██║███████╗╚██████║
+██╔══██╗╚════██║██╔══██║██║╚██╗██║██║     ██╔══██║██╔══╝   ███╔╝  ██║      ██║██╔═══██╗╚═══██║
+██║  ██║███████║██║  ██║██║ ╚████║╚██████╗██║  ██║███████╗███████╗╚██████╗ ██║╚██████╔╝█████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝ ╚═════╝ ╚════╝ 
+Script Version: 1
+OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
+PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
+Description: Steps on how to disable Microsofts Authentication Methods Registration Campaign. 
+URL: https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/RegistrationCampaign/fromNav/Identity?Microsoft_AAD_IAM_legacyAADRedirect=true
+#>
+##################################################################################################################################################################
+##################################################################################################################################################################
+Step 1: Open PowerShell as an administrator.
+Windows Key + R
+powershell Start-Process powershell -verb runAs
+
+Step 2: Set your execution policy for current process
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+
+Step 3: Install Microsoft graph modules
+Install-Module -Name Microsoft.Graph
+
+Step 4: Update the modules
+Update-Module -Name "Microsoft.Graph.Authentication", "Microsoft.Graph.Users", "Microsoft.Graph.Identity.SignIns"
+
+Step 5: Import Microsoft graph modules
+Import-Module -Name "Microsoft.Graph.Authentication", "Microsoft.Graph.Users", "Microsoft.Graph.Identity.SignIns"
+
+Step 6: Connect to Microsoft Graph with Global Admin.
+Connect-MgGraph -Scopes "Policy.ReadWrite.AuthenticationMethod", "Policy.Read.All", "User.Read.All","Policy.ReadWrite.ConditionalAccess","UserAuthenticationMethod.ReadWrite.All"
+
+Step 8: Run the below command to disable mfa campaign registration.
+$params = @{
+  registrationEnforcement = @{
+    authenticationMethodsRegistrationCampaign = @{
+      snoozeDurationInDays = 14
+      state = "Disabled"
+    }
+  }
+}
+Update-MgPolicyAuthenticationMethodPolicy -BodyParameter $params
+
+Step 9: At the end disconnect from graph
+Disconnect-MgGraph
+##################################################################################################################################################################
+##################################################################################################################################################################
