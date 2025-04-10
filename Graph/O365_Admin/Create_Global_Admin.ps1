@@ -26,10 +26,8 @@ OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26
 PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
 Flipper Zero FirmWare mntm-001 https://momentum-fw.dev/update/
 Description of Script: 
-The Create-M365GlobalAdmin function is designed to automate the creation of a new Microsoft 365 Global Administrator user account using the Microsoft Graph API. It handles critical steps such as user creation, default domain retrieval, and role assignment, making the process efficient and repeatable.
-
-NOTE:
-Before using this function change the DisplayName "John Doe", MailNickname "johndoe", and Password "StrongPassword123!" to what you desire. Additionally make sure there are no spaces in mail nickname as this is used to create the UPN and UPN's cannot have spaces in them.
+The Create-M365GlobalAdmin function is designed to automate the creation of a new Microsoft 365 Global Administrator user account using the Microsoft Graph API. 
+It handles critical steps such as user creation, default domain retrieval, and role assignment, making the process efficient and repeatable.
 #>
 ##################################################################################################################################################################
 #==============================Beginning==========================================================================================================================
