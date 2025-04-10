@@ -104,7 +104,7 @@ function Create-M365GlobalAdmin {
 }
 
 # Example usage of the function
-Create-M365GlobalAdmin -DisplayName "John Doe" -MailNickname "johndoe" -Password "StrongPassword123!"
+Create-M365GlobalAdmin -DisplayName "$(Read-Host "Enter in new admins display name -> ")" -MailNickname "$(Read-Host "Enter in new admins mail nickname no spaces -> ")" -Password "$(Read-Host "Enter in new admins password -> ")"
 ##################################################################################################################################################################
 #==============================End================================================================================================================================
 ##################################################################################################################################################################
