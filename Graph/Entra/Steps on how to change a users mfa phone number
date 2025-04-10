@@ -1,0 +1,70 @@
+##################################################################################################################################################################
+##################################################################################################################################################################
+<#
+                 _..--+~/@-~--.
+             _-=~      (  .   "}
+          _-~     _.--=.\ \""""
+        _~      _-       \ \_\
+       =      _=          '--'
+      '      =                             .
+     :      :       ____                   '=_. ___
+___  |      ;                            ____ '~--.~.
+     ;      ;                               _____  } |
+  ___=       \ ___ __     __..-...__           ___/__/__
+     :        =_     _.-~~          ~~--.__
+_____ \         ~-+-~                   ___~=_______
+     ~@#~~ == ...______ __ ___ _--~~--_
+                                                    =
+██████╗ ███████╗ █████╗ ███╗   ██╗ ██████╗██╗  ██╗███████╗███████╗ ██████╗ ██╗ ██████╗ █████╗ 
+██╔══██╗██╔════╝██╔══██╗████╗  ██║██╔════╝██║  ██║██╔════╝╚══███╔╝██╔════╝███║██╔════╝██╔══██╗
+██████╔╝███████╗███████║██╔██╗ ██║██║     ███████║█████╗    ███╔╝ ██║     ╚██║███████╗╚██████║
+██╔══██╗╚════██║██╔══██║██║╚██╗██║██║     ██╔══██║██╔══╝   ███╔╝  ██║      ██║██╔═══██╗╚═══██║
+██║  ██║███████║██║  ██║██║ ╚████║╚██████╗██║  ██║███████╗███████╗╚██████╗ ██║╚██████╔╝█████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝ ╚═════╝ ╚════╝ 
+Script Version: 1
+OS Version Script was written on: Microsoft Windows 11 Pro : 10.0.25100 Build 26100
+PSVersion 5.1.26100.2161 : PSEdition Desktop : Build Version 10.0.26100.2161
+Description: Steps on how to change a users MFA Phone number.
+#>
+##################################################################################################################################################################
+##################################################################################################################################################################
+Step 1: Open PowerShell as an administrator.
+Windows Key + R #Open run dialog box
+then type powershell Start-Process powershell -verb runAs
+
+Step 2: Set your execution policy for current process to unrestricted.
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+
+Step 3: Install Microsoft graph modules.
+Install-Module -Name Microsoft.Graph
+
+Step 4: Check if Microsoft Graph modules were installed.
+Get-InstalledModule –Name "Microsoft.Graph.Authentication", "Microsoft.Graph.Users“ , "Microsoft.Graph.Identity.SignIns"
+
+Step 4: Update Microsoft Graph modules.
+Update-Module -Name "Microsoft.Graph.Authentication", "Microsoft.Graph.Users“ , "Microsoft.Graph.Identity.SignIns"
+
+Step 5: Import Microsoft Graph modules.
+Import-Module -Name "Microsoft.Graph.Authentication", "Microsoft.Graph.Users" , "Microsoft.Graph.Identity.SignIns"
+
+Step 6: Connect to Microsoft Graph with the appropriate scopes needed to run your commands and  depending on the commands you will either authenticate as the user or a global admin. 
+Connect-MgGraph -Scopes "User.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All"
+ 
+Step 7: Run the below commands to change the user mfa phone number:
+$userId = Get-MgUser -UserId $(Clear-Host;Read-Host "Enter in user email address format[user@domain.com] -> ")
+
+$phoneMethods = Get-MgUserAuthenticationPhoneMethod -UserId $userId.Id
+
+Write-Host "`n`n$($userId.DisplayName) MFA details " -ForeGroundColor Blue
+$phoneMethods | Format-List Id, PhoneType, PhoneNumber
+
+$phoneMethodId = $phoneMethods.Id
+Update-MgUserAuthenticationPhoneMethod -UserId $userId.Id -PhoneAuthenticationMethodId $phoneMethodId -PhoneNumber "$(Read-Host "Enter in new mfa phone number format[+1 1234567890] -> " )"
+
+#Check if the phone number was set
+Write-Host "`n`n$($userId.DisplayName) New MFA phone number is "(Get-MgUserAuthenticationPhoneMethod -UserId $userId.Id).PhoneNumber -ForeGroundColor Blue
+
+Step 8: At the end disconnect from Microsoft Graph.
+Disconnect-MgGraph
+##################################################################################################################################################################
+##################################################################################################################################################################
